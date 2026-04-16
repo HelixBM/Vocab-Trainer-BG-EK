@@ -1,0 +1,24 @@
+{
+  "name": "Vocab Trainer – Eingangsklasse BG",
+  "short_name": "Vocab BG",
+  "description": "English-German vocabulary trainer for Eingangsklasse BG",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f9f8f6",
+  "theme_color": "#1a56b0",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
