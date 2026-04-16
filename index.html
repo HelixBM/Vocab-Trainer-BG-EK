@@ -824,23 +824,95 @@ function showTestCreator() {
   document.getElementById('test-q-count').max = activeDeck.length;
 }
 
+// ── Test Creator ──
+function showTestCreator() {
+  show('test-creator-screen');
+  document.getElementById('test-output').style.display = 'none';
+  document.getElementById('print-test-btn').style.display = 'none';
+  const maxQ = Math.min(activeDeck.length, 20); // 20 is perfect for 1 page
+  document.getElementById('test-q-count').value = maxQ;
+  document.getElementById('test-q-count').max = activeDeck.length;
+}
+
 function generateTest(showAnswers) {
   let numQs = parseInt(document.getElementById('test-q-count').value) || 20;
   if (numQs > activeDeck.length) numQs = activeDeck.length;
+  
   const shuffled = shuffle(activeDeck).slice(0, numQs);
   const sel = document.getElementById('dir-select').value;
-  const testDir = sel === 'random' ? (Math.random() < 0.5 ? 'en-de' : 'de-en') : sel;
   
-  let html = `<h2 style="text-align:center; margin-bottom: 20px; color:#1a1a18; font-size:24px; font-family:sans-serif;">Vocabulary Worksheet</h2>`;
-  html += `<ol style="margin-left: 20px; line-height: 2.5; color:#1a1a18; font-size:16px;">`;
-  shuffled.forEach(w => {
-    const question = testDir === 'en-de' ? w[0] : w[1];
-    const answer = testDir === 'en-de' ? w[1] : w[0];
-    if (showAnswers) html += `<li><strong>${question}</strong> &mdash; <span style="color:#1a56b0;font-weight:bold;">${answer}</span></li>`;
-    else html += `<li><strong>${question}</strong> &mdash; _______________________________________</li>`;
-  });
-  html += `</ol>`;
+  // Build the Header matching the PDF
+  let html = `
+    <div class="test-header" style="display:flex; justify-content:space-between; margin-bottom:30px; font-size:15px; color:#000;">
+      <div class="header-left">
+        <div>English/Eingangsklasse BG</div>
+        <div style="font-weight:bold; font-size:18px; margin-top:10px;">Vocabulary Test</div>
+      </div>
+      <div class="header-right" style="text-align:right;">
+        <div style="margin-bottom:10px;">name: <span style="display:inline-block; width:200px; border-bottom:1px solid #000;"></span></div>
+        <div>Total: <span style="display:inline-block; width:40px; border-bottom:1px solid #000;"></span> / ${numQs} &nbsp;&nbsp;&nbsp; Grade: <span style="display:inline-block; width:50px; border-bottom:1px solid #000;"></span></div>
+      </div>
+    </div>
+  `;
+
+  // Split into two parts for the PDF layout (unless a specific direction is chosen)
+  let part1 = [], part2 = [];
+  if (sel === 'en-de') {
+    part1 = shuffled;
+  } else if (sel === 'de-en') {
+    part2 = shuffled;
+  } else {
+    const half = Math.ceil(numQs / 2);
+    part1 = shuffled.slice(0, half);
+    part2 = shuffled.slice(half);
+  }
+
+  // Helper function to render a list of questions
+  const renderList = (words, fromEnToDe) => {
+    let listHtml = `<ul style="list-style-type:none; padding:0; margin:0 0 30px 0;">`;
+    words.forEach(w => {
+      const question = fromEnToDe ? w[0] : w[1];
+      const answer = fromEnToDe ? w[1] : w[0];
+      
+      if (showAnswers) {
+        listHtml += `
+          <li style="display:flex; align-items:flex-end; margin-bottom:16px; font-size:15px; color:#000;">
+            <span style="width:45%;">• ${question}</span>
+            <span style="flex:1; border-bottom:1px solid #000; color:#1a56b0; font-weight:bold; padding-bottom:2px;">${answer}</span>
+          </li>`;
+      } else {
+        listHtml += `
+          <li style="display:flex; align-items:flex-end; margin-bottom:16px; font-size:15px; color:#000;">
+            <span style="width:45%;">• ${question}</span>
+            <span style="flex:1; border-bottom:1px solid #000; padding-bottom:2px;"></span>
+          </li>`;
+      }
+    });
+    listHtml += `</ul>`;
+    return listHtml;
+  };
+
+  // Section 1: English -> German
+  if (part1.length > 0) {
+    html += `
+      <div style="font-weight:bold; margin-bottom:15px; font-size:16px; color:#000;">
+        1. Translate these words into German. (${part1.length})
+      </div>
+      ${renderList(part1, true)}
+    `;
+  }
   
+  // Section 2: German -> English
+  if (part2.length > 0) {
+    let sectionNum = part1.length > 0 ? "2." : "1.";
+    html += `
+      <div style="font-weight:bold; margin-bottom:15px; font-size:16px; color:#000;">
+        ${sectionNum} Translate these words into English. (${part2.length})
+      </div>
+      ${renderList(part2, false)}
+    `;
+  }
+
   const out = document.getElementById('test-output');
   out.innerHTML = html;
   out.style.display = 'block';
@@ -850,13 +922,31 @@ function generateTest(showAnswers) {
 function printTest() {
   const content = document.getElementById('test-output').innerHTML;
   const printWindow = window.open('', '', 'height=800,width=800');
-  printWindow.document.write('<html><head><title>Vocabulary Test</title><style>body{font-family:system-ui,-apple-system,sans-serif;padding:40px;color:#000}li{margin-bottom:15px;font-size:16px}@media print{@page{margin:2cm}}</style></head><body>');
-  printWindow.document.write(content);
-  printWindow.document.write('</body></html>');
-  printWindow.document.close(); printWindow.focus();
+  
+  // Clean, single-page print CSS
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Vocabulary Test</title>
+        <style>
+          body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #000; background: #fff; }
+          li { page-break-inside: avoid; }
+          @media print {
+            @page { margin: 2cm; size: A4 portrait; }
+            body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+      </body>
+    </html>
+  `);
+  
+  printWindow.document.close(); 
+  printWindow.focus();
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
 }
-
 // ── Boot ──
 initApp();
 </script>
