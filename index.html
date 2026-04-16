@@ -348,7 +348,7 @@ h2 { font-size: 18px; font-weight: 600; color: #1a56b0; margin-bottom: .25rem; }
 
 <script>
 // ── App State ──
-let activeFrom=35, activeTo=46, activeDeck=[], dir='en-de', lastMode='mcq', isWeakMode=false;
+let activeFrom=1, activeTo=1, activeDeck=[], dir='en-de', lastMode='mcq', isWeakMode=false;
 let current=0, score=0, wrong=[];
 let matchSelected=null, matchPairs=[], matchDone=0;
 let timeLimit=60, timeInterval=null;
@@ -494,170 +494,114 @@ function countWords(from,to){
 }
 
 // ── Selection screen ──
-function buildSelection(){
-  const list=document.getElementById('unit-list');
-  list.innerHTML='';
-  if(typeof UNITS === 'undefined') return;
-  
-  UNITS.forEach((u,idx)=>{
-    const n=(u.from !== undefined) ? countWords(u.from,u.to) : '—';
-    const card=document.createElement('div');
-    card.className='unit-card';
-    card.innerHTML=`<div><div class="unit-name">${u.name}</div><div class="unit-meta">${u.desc}${u.from?' &nbsp;·&nbsp; pp.'+u.from+'–'+u.to:''}</div></div><span class="unit-count">${n} words</span>`;
-    card.onclick=()=>selectUnit(idx);
+function buildSelection() {
+  const list = document.getElementById('unit-list');
+  list.innerHTML = '';
+  if (typeof UNITS === 'undefined') return;
+
+  UNITS.forEach((u, idx) => {
+    const n = (u.from !== undefined) ? countWords(u.from, u.to) : '—';
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    const pageText = (u.from !== undefined) ? ` &nbsp;·&nbsp; pp.${u.from}–${u.to}` : '';
+    card.innerHTML = `<div><div class="unit-name">${u.name}</div><div class="unit-meta">${u.desc}${pageText}</div></div><span class="unit-count">${n} words</span>`;
+    
+    // Explicitly binding the click event to select the unit without throwing errors
+    card.onclick = () => selectUnit(idx);
+    
     list.appendChild(card);
   });
 
-  // Dynamically find the min and max pages from your db.js
-  const allPages = Object.keys(VOCAB_BY_PAGE).map(Number).sort((a,b)=>a-b);
-  const minPage = allPages[0] || 1;
-  const maxPage = allPages[allPages.length - 1] || 999;
+  // Calculate limits safely
+  let minPage = 1, maxPage = 999;
+  if (typeof VOCAB_BY_PAGE !== 'undefined') {
+    const allPages = Object.keys(VOCAB_BY_PAGE).map(Number).sort((a, b) => a - b);
+    if(allPages.length > 0) {
+      minPage = allPages[0];
+      maxPage = allPages[allPages.length - 1];
+    }
+  }
 
-  const fi=document.getElementById('range-from');
-  const ti=document.getElementById('range-to');
-  
+  const fi = document.getElementById('range-from');
+  const ti = document.getElementById('range-to');
+
   fi.min = minPage; fi.max = maxPage;
   ti.min = minPage; ti.max = maxPage;
 
   buildBubbles();
   updateCount();
 
-  fi.oninput=()=>{
-    activeFrom=Math.max(minPage, Math.min(maxPage, parseInt(fi.value) || minPage));
-    if(activeFrom>activeTo){activeTo=activeFrom;ti.value=activeTo;}
-    fi.value=activeFrom;
+  fi.oninput = () => {
+    activeFrom = Math.max(minPage, Math.min(maxPage, parseInt(fi.value) || minPage));
+    if (activeFrom > activeTo) { activeTo = activeFrom; ti.value = activeTo; }
+    fi.value = activeFrom;
     deselectUnits(); buildBubbles(); updateCount();
   };
-  ti.oninput=()=>{
-    activeTo=Math.max(minPage, Math.min(maxPage, parseInt(ti.value) || minPage));
-    if(activeTo<activeFrom){activeFrom=activeTo;fi.value=activeFrom;}
-    ti.value=activeTo;
+  
+  ti.oninput = () => {
+    activeTo = Math.max(minPage, Math.min(maxPage, parseInt(ti.value) || minPage));
+    if (activeTo < activeFrom) { activeFrom = activeTo; fi.value = activeFrom; }
+    ti.value = activeTo;
     deselectUnits(); buildBubbles(); updateCount();
-  };
-
-  selectUnit(0); // Automatically selects the first unit on load
-}
-
-function deselectUnits(){
-  document.querySelectorAll('.unit-card').forEach(c=>c.classList.remove('selected'));
-}
-
-function selectUnit(idx){
-  deselectUnits();
-  const cards = document.querySelectorAll('.unit-card');
-  if(cards[idx]) cards[idx].classList.add('selected');
-  const u=UNITS[idx];
-  if(u && u.from !== undefined){
-    activeFrom=u.from; activeTo=u.to;
-    document.getElementById('range-from').value=activeFrom;
-    document.getElementById('range-to').value=activeTo;
-  }
-  buildBubbles(); updateCount();
-}
-
-function buildBubbles(){
-  const container=document.getElementById('page-bubbles');
-  container.innerHTML='';
-  if(typeof VOCAB_BY_PAGE === 'undefined') return;
-  const allPages=Object.keys(VOCAB_BY_PAGE).map(Number).sort((a,b)=>a-b);
-  allPages.forEach(p=>{
-    const bub=document.createElement('div');
-    const inRange=p>=activeFrom&&p<=activeTo;
-    const isEdge=p===activeFrom||p===activeTo;
-    bub.className='pb'+(isEdge?' range-start':inRange?' in-range':'');
-    bub.textContent=p;
-    
-    bub.onclick=()=>{
-      if(!bub._drag){
-        activeFrom=p; if(p>activeTo)activeTo=p;
-        document.getElementById('range-from').value=activeFrom;
-        document.getElementById('range-to').value=activeTo;
-        deselectUnits(); buildBubbles(); updateCount();
-      }
-    };
-    bub.oncontextmenu=(e)=>{
-      e.preventDefault();
-      activeTo=p; if(p<activeFrom)activeFrom=p;
-      document.getElementById('range-from').value=activeFrom;
-      document.getElementById('range-to').value=activeTo;
-      deselectUnits(); buildBubbles(); updateCount();
-    };
-    container.appendChild(bub);
-  });
-}
-  updateCount();
-
-  const fi=document.getElementById('range-from');
-  const ti=document.getElementById('range-to');
-  fi.oninput=()=>{
-    activeFrom=Math.max(6,Math.min(184,parseInt(fi.value)||6));
-    if(activeFrom>activeTo){activeTo=activeFrom;ti.value=activeTo;}
-    fi.value=activeFrom;
-    deselectUnits(); selectCustom(); buildBubbles(); updateCount();
-  };
-  ti.oninput=()=>{
-    activeTo=Math.max(6,Math.min(184,parseInt(ti.value)||6));
-    if(activeTo<activeFrom){activeFrom=activeTo;fi.value=activeFrom;}
-    ti.value=activeTo;
-    deselectUnits(); selectCustom(); buildBubbles(); updateCount();
   };
 
   selectUnit(0);
 }
 
-function deselectUnits(){document.querySelectorAll('.unit-card').forEach(c=>c.classList.remove('selected'));}
-function selectCustom(){
-  const cards = document.querySelectorAll('.unit-card');
-  if(cards.length > 0) cards[cards.length-1].classList.add('selected');
+function deselectUnits() {
+  document.querySelectorAll('.unit-card').forEach(c => c.classList.remove('selected'));
 }
 
-function selectUnit(idx){
+function selectUnit(idx) {
   deselectUnits();
   const cards = document.querySelectorAll('.unit-card');
-  if(cards[idx]) cards[idx].classList.add('selected');
-  const u=UNITS[idx];
-  if(u && u.from){
-    activeFrom=u.from; activeTo=u.to;
-    document.getElementById('range-from').value=activeFrom;
-    document.getElementById('range-to').value=activeTo;
+  if (cards[idx]) cards[idx].classList.add('selected');
+  const u = UNITS[idx];
+  if (u && u.from !== undefined) {
+    activeFrom = u.from;
+    activeTo = u.to;
+    document.getElementById('range-from').value = activeFrom;
+    document.getElementById('range-to').value = activeTo;
   }
-  buildBubbles(); updateCount();
+  buildBubbles();
+  updateCount();
 }
 
-function buildBubbles(){
-  const container=document.getElementById('page-bubbles');
-  container.innerHTML='';
-  if(typeof VOCAB_BY_PAGE === 'undefined') return;
-  const allPages=Object.keys(VOCAB_BY_PAGE).map(Number).sort((a,b)=>a-b);
-  allPages.forEach(p=>{
-    const bub=document.createElement('div');
-    const inRange=p>=activeFrom&&p<=activeTo;
-    const isEdge=p===activeFrom||p===activeTo;
-    bub.className='pb'+(isEdge?' range-start':inRange?' in-range':'');
-    bub.textContent=p;
-    bub.onclick=()=>{
-      if(!bub._drag){
-        activeFrom=p; if(p>activeTo)activeTo=p;
-        document.getElementById('range-from').value=activeFrom;
-        document.getElementById('range-to').value=activeTo;
-        deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+function buildBubbles() {
+  const container = document.getElementById('page-bubbles');
+  container.innerHTML = '';
+  if (typeof VOCAB_BY_PAGE === 'undefined') return;
+  const allPages = Object.keys(VOCAB_BY_PAGE).map(Number).sort((a, b) => a - b);
+  allPages.forEach(p => {
+    const bub = document.createElement('div');
+    const inRange = p >= activeFrom && p <= activeTo;
+    const isEdge = p === activeFrom || p === activeTo;
+    bub.className = 'pb' + (isEdge ? ' range-start' : inRange ? ' in-range' : '');
+    bub.textContent = p;
+
+    bub.onclick = () => {
+      if (!bub._drag) {
+        activeFrom = p; if (p > activeTo) activeTo = p;
+        document.getElementById('range-from').value = activeFrom;
+        document.getElementById('range-to').value = activeTo;
+        deselectUnits(); buildBubbles(); updateCount();
       }
     };
-    bub.oncontextmenu=(e)=>{
+    bub.oncontextmenu = (e) => {
       e.preventDefault();
-      activeTo=p; if(p<activeFrom)activeFrom=p;
-      document.getElementById('range-from').value=activeFrom;
-      document.getElementById('range-to').value=activeTo;
-      deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+      activeTo = p; if (p < activeFrom) activeFrom = p;
+      document.getElementById('range-from').value = activeFrom;
+      document.getElementById('range-to').value = activeTo;
+      deselectUnits(); buildBubbles(); updateCount();
     };
     container.appendChild(bub);
   });
 }
 
-function updateCount(){
-  const n=countWords(activeFrom,activeTo);
-  document.getElementById('range-count').textContent=n+' words';
-  document.getElementById('start-btn').disabled=n<4;
+function updateCount() {
+  const n = countWords(activeFrom, activeTo);
+  document.getElementById('range-count').textContent = n + ' words';
+  document.getElementById('start-btn').disabled = n < 4;
 }
 
 function goToModes(){
