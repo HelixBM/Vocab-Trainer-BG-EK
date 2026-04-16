@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocab Trainer – Eingangsklasse BG</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a56b0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Vocab BG">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f9f8f6; color: #1a1a18; min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 2rem 1rem; }
+.wrap { width: 100%; max-width: 580px; position: relative; }
+.screen { display: none; }
+.screen.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+.pill { display: inline-block; font-size: 12px; font-weight: 500; padding: 3px 10px; border-radius: 20px; background: #f0ede8; color: #6b6860; border: 1px solid #ddd8d0; }
+.btn { cursor: pointer; padding: 9px 20px; border-radius: 8px; border: 1px solid #c8c4be; background: #fff; color: #1a1a18; font-size: 14px; font-weight: 500; transition: all .15s; font-family: inherit; }
+.btn:hover:not(:disabled) { background: #f0ede8; }
+.btn:active:not(:disabled) { transform: scale(.97); }
+.btn:disabled { opacity: .4; cursor: default; pointer-events: none; }
+.btn-accent { background: #1a56b0; color: #fff; border-color: #1a56b0; }
+.btn-accent:hover:not(:disabled) { background: #15458c; border-color: #15458c; }
+.btn-sm { padding: 7px 14px; font-size: 13px; }
+
+h2 { font-size: 18px; font-weight: 600; color: #1a56b0; margin-bottom: .25rem; }
+.sub { font-size: 13px; color: #6b6860; margin-bottom: 1.25rem; }
+
+.progress-bar { height: 5px; background: #e8e4de; border-radius: 4px; overflow: hidden; margin-bottom: 1.5rem; }
+.progress-fill { height: 100%; background: #1a56b0; border-radius: 4px; transition: width .35s; }
+.score-row { display: flex; justify-content: space-between; align-items: center; font-size: 13px; color: #6b6860; margin-bottom: .75rem; }
+
+.word-card { background: #fff; border: 1px solid #ddd8d0; border-radius: 12px; padding: 1.5rem; text-align: center; font-size: 21px; font-weight: 500; color: #1a1a18; margin-bottom: 1.5rem; min-height: 76px; display: flex; align-items: center; justify-content: center; line-height: 1.3; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+.back-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: #1a56b0; cursor: pointer; margin-bottom: 1.25rem; background: none; border: none; font-family: inherit; padding: 0; font-weight: 500; }
+.back-link:hover { text-decoration: underline; }
+
+/* ── Gamification Elements ── */
+.top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid #ddd8d0; }
+.streak-box { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; color: #1a56b0; background: #e8f0fb; padding: 4px 10px; border-radius: 20px; }
+.badge-btn { font-size: 13px; font-weight: 500; cursor: pointer; background: #fff; border: 1px solid #c8c4be; padding: 4px 10px; border-radius: 20px; transition: background 0.2s; color: #1a1a18; }
+.badge-btn:hover { background: #f0ede8; }
+
+.badge-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 1.5rem; }
+.badge-card { background: #fff; border: 1px solid #c8c4be; border-radius: 10px; padding: 12px; text-align: center; opacity: 0.4; filter: grayscale(100%); transition: all 0.3s; }
+.badge-card.unlocked { opacity: 1; filter: grayscale(0%); border-color: #1a56b0; background: #f4f8fc; }
+.badge-icon { font-size: 18px; font-weight: 700; color: #1a56b0; margin-bottom: 6px; letter-spacing: 1px; }
+.badge-title { font-size: 13px; font-weight: 600; color: #1a1a18; margin-bottom: 2px; }
+.badge-desc { font-size: 11px; color: #6b6860; }
+
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(100px); background: #1a56b0; color: #fff; padding: 12px 24px; border-radius: 30px; font-size: 14px; font-weight: 500; box-shadow: 0 10px 25px rgba(26,86,176,0.2); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); z-index: 100; display: flex; align-items: center; gap: 8px; }
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+.weak-word-alert { background: #fdfaf5; color: #d97706; border: 1px solid #fcebb6; border-radius: 8px; padding: 10px 14px; font-size: 13px; margin-bottom: 1.25rem; display: flex; justify-content: space-between; align-items: center; cursor: pointer; font-weight: 500; }
+.weak-word-alert:hover { background: #fcf4e3; }
+
+/* ── selection ── */
+.unit-list { display: flex; flex-direction: column; gap: 7px; margin-bottom: 1.25rem; max-height: 200px; overflow-y: auto; padding-right: 5px; }
+.unit-card { cursor: pointer; padding: 13px 16px; border-radius: 10px; border: 1px solid #c8c4be; background: #fff; display: flex; align-items: center; justify-content: space-between; transition: all .15s; }
+.unit-card:hover { border-color: #888; background: #fafafa; }
+.unit-card.selected { border-color: #1a56b0; background: #f4f8fc; }
+.unit-name { font-size: 14px; font-weight: 600; color: #1a1a18; }
+.unit-meta { font-size: 12px; color: #6b6860; margin-top: 2px; }
+.unit-count { font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 12px; background: #f0ede8; color: #6b6860; white-space: nowrap; }
+.unit-card.selected .unit-count { background: #1a56b0; color: #fff; }
+
+.range-box { background: #fff; border: 1px solid #ddd8d0; border-radius: 10px; padding: 1.25rem; margin-bottom: 1.25rem; }
+.range-title { font-size: 13px; font-weight: 500; color: #1a1a18; margin-bottom: .75rem; }
+.range-row { display: flex; align-items: center; gap: 10px; margin-bottom: .5rem; flex-wrap: wrap; }
+.range-label { font-size: 13px; color: #6b6860; min-width: 30px; }
+.range-input { width: 68px; padding: 7px 10px; border-radius: 7px; border: 1px solid #c8c4be; font-size: 14px; font-family: inherit; text-align: center; background: #fff; color: #1a1a18; }
+.range-input:focus { outline: none; border-color: #1a56b0; }
+.range-sep { font-size: 14px; color: #6b6860; }
+.range-count { font-size: 13px; font-weight: 500; color: #1a56b0; min-width: 60px; }
+.page-bubbles { display: flex; flex-wrap: wrap; gap: 4px; margin-top: .75rem; max-height: 120px; overflow-y: auto; }
+.pb { width: 34px; height: 26px; border-radius: 5px; border: 1px solid #ddd8d0; background: #f9f8f6; font-size: 11px; font-weight: 500; color: #9e9690; display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all .12s; user-select: none; }
+.pb:hover { border-color: #888; background: #f0ede8; color: #1a1a18; }
+.pb.in-range { background: #e8f0fb; border-color: #b8cff0; color: #1a56b0; }
+.pb.range-start, .pb.range-end { background: #1a56b0; border-color: #1a56b0; color: #fff; }
+
+/* ── mode picker ── */
+.mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+.mode-card { cursor: pointer; padding: 14px; border-radius: 10px; border: 1px solid #c8c4be; background: #fff; transition: all .15s; display: flex; flex-direction: column; justify-content: center; }
+.mode-card:hover { border-color: #1a56b0; background: #fafafa; }
+.mode-title { font-size: 14px; font-weight: 600; color: #1a1a18; margin-bottom: 2px; }
+.mode-desc { font-size: 12px; color: #6b6860; }
+
+/* ── MCQ & Generic ── */
+.options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+.opt { cursor: pointer; padding: 13px 14px; border-radius: 8px; border: 1px solid #c8c4be; background: #fff; color: #1a1a18; font-size: 13px; text-align: left; transition: all .15s; line-height: 1.4; width: 100%; font-family: inherit; font-weight: 500; }
+.opt:hover:not([disabled]) { background: #f0ede8; border-color: #888; }
+.opt.correct { background: #e8f7ee; color: #1a6b3a; border-color: #9dd4b4; }
+.opt.wrong { background: #fdeaea; color: #a32d2d; border-color: #f0a0a0; }
+.opt.reveal { background: #e8f7ee; color: #1a6b3a; border-color: #9dd4b4; opacity: .7; }
+.opt[disabled] { cursor: default; pointer-events: none; }
+
+/* ── flashcard ── */
+.fc-answer { text-align: center; font-size: 16px; color: #1a1a18; font-weight: 500; margin-bottom: 1.5rem; line-height: 1.6; padding: 1.5rem; border-radius: 8px; background: #fff; border: 1px solid #ddd8d0; }
+
+/* ── match ── */
+.match-col { display: flex; flex-direction: column; gap: 8px; }
+.match-item { padding: 10px 12px; border-radius: 8px; border: 1px solid #c8c4be; background: #fff; color: #1a1a18; font-size: 13px; cursor: pointer; transition: all .15s; min-height: 42px; display: flex; align-items: center; line-height: 1.3; font-weight: 500; }
+.match-item:hover { background: #f0ede8; }
+.match-item.selected { border-color: #1a56b0; background: #f4f8fc; color: #1a56b0; }
+.match-item.matched { border-color: #9dd4b4; background: #e8f7ee; color: #1a6b3a; pointer-events: none; opacity: 0.6; }
+.match-item.wrong-flash { border-color: #f0a0a0; background: #fdeaea; color: #a32d2d; }
+
+/* ── type & Dictation ── */
+.type-input { width: 100%; padding: 12px 14px; font-size: 16px; border-radius: 8px; border: 1px solid #c8c4be; background: #fff; color: #1a1a18; margin-bottom: 10px; font-family: inherit; }
+.type-input:focus { outline: none; border-color: #1a56b0; box-shadow: 0 0 0 2px rgba(26,86,176,0.1); }
+.feedback { font-size: 14px; min-height: 20px; margin-bottom: 1rem; font-weight: 500; text-align: center; }
+.audio-btn { width: 80px; height: 80px; border-radius: 50%; background: #fff; color: #1a56b0; border: 1px solid #1a56b0; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; cursor: pointer; box-shadow: 0 4px 12px rgba(26,86,176,0.1); transition: all 0.2s; }
+.audio-btn svg { width: 32px; height: 32px; fill: currentColor; }
+.audio-btn:hover { background: #f4f8fc; transform: scale(1.05); }
+.audio-btn:active { transform: scale(0.95); }
+
+/* ── results ── */
+.summary-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8e4de; font-size: 13px; }
+.badge-pct { font-size: 44px; font-weight: 600; text-align: center; margin: .75rem 0; color: #1a56b0; }
+.timer-text { font-size: 24px; font-weight: 600; color: #d97706; text-align: center; margin-bottom: 10px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<div id="select-screen" class="screen active">
+  <div class="top-bar">
+    <div>
+      <h2 style="margin:0;">Vocab Trainer</h2>
+      <p class="sub" style="margin:0;">Eingangsklasse BG</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div class="streak-box" title="Daily Streak">Streak: <span id="streak-count">0</span></div>
+      <button class="badge-btn" onclick="show('badge-screen')" title="Achievements">Badges</button>
+    </div>
+  </div>
+  
+  <div id="weak-alert-container"></div>
+
+  <div class="unit-list" id="unit-list"></div>
+  <div class="range-box">
+    <div class="range-title">Page Range Selection</div>
+    <div class="range-row">
+      <span class="range-label">From</span>
+      <input class="range-input" id="range-from" type="number" min="6" max="184" value="35">
+      <span class="range-sep">to</span>
+      <input class="range-input" id="range-to" type="number" min="6" max="184" value="46">
+      <span class="range-count" id="range-count"></span>
+    </div>
+    <div class="page-bubbles" id="page-bubbles"></div>
+  </div>
+  <button class="btn btn-accent" id="start-btn" onclick="goToModes()" style="width:100%;padding:14px;font-size:16px;">Continue to Modes →</button>
+</div>
+
+<div id="badge-screen" class="screen">
+  <button class="back-link" onclick="show('select-screen')">← Back to start</button>
+  <h2>Achievements</h2>
+  <p class="sub">Unlock badges by hitting study milestones.</p>
+  <div class="badge-grid" id="badge-container"></div>
+</div>
+
+<div id="mode-screen" class="screen">
+  <button class="back-link" onclick="show('select-screen')">← Change selection</button>
+  <h2>Select Practice Mode</h2>
+  <p class="sub" id="mode-sub"></p>
+  
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('mcq')">
+      <div class="mode-title">Multiple Choice</div>
+      <div class="mode-desc">Pick the correct translation</div>
+    </div>
+    <div class="mode-card" onclick="startMode('flashcard')">
+      <div class="mode-title">Flashcards</div>
+      <div class="mode-desc">Reveal translation, rate yourself</div>
+    </div>
+    <div class="mode-card" onclick="startMode('match')">
+      <div class="mode-title">Match Pairs</div>
+      <div class="mode-desc">Connect sets of 6 pairs</div>
+    </div>
+    <div class="mode-card" onclick="startMode('type')">
+      <div class="mode-title">Type It</div>
+      <div class="mode-desc">Type from memory</div>
+    </div>
+    <div class="mode-card" onclick="startMode('dictation')">
+      <div class="mode-title">Dictation</div>
+      <div class="mode-desc">Listen to the word and type</div>
+    </div>
+    <div class="mode-card" onclick="startMode('timeattack')" style="grid-column: span 2; border-color: #d97706; background:#fcf4e3;">
+      <div class="mode-title" style="color:#d97706;">Time Attack</div>
+      <div class="mode-desc">60 seconds. How many can you get?</div>
+    </div>
+    <div class="mode-card" onclick="showTestCreator()" style="grid-column: span 2; background: #f4f8fc; border-color: #1a56b0;">
+      <div class="mode-title" style="color:#1a56b0;">Create a Worksheet</div>
+      <div class="mode-desc">Generate a printable test for class</div>
+    </div>
+  </div>
+  
+  <div style="font-size:12px;color:#6b6860;margin-bottom:6px;font-weight:500;">Translation Direction</div>
+  <select id="dir-select" style="width:100%;padding:10px;border-radius:8px;border:1px solid #c8c4be;background:#fff;font-size:14px;font-family:inherit;color:#1a1a18;margin-bottom:1.5rem;font-weight:500;">
+    <option value="random">Random Direction</option>
+    <option value="en-de">English → German</option>
+    <option value="de-en">German → English</option>
+  </select>
+</div>
+
+<div id="mcq-screen" class="screen">
+  <div id="ta-timer-container" style="display:none;"><div class="timer-text" id="ta-timer">60s</div></div>
+  <div class="score-row"><span id="mcq-label"></span><span id="mcq-score"></span></div>
+  <div class="progress-bar" id="mcq-prog-container"><div class="progress-fill" id="mcq-progress"></div></div>
+  <div class="pill" id="mcq-dir" style="margin-bottom:1rem"></div>
+  <div class="word-card" id="mcq-word"></div>
+  <div class="options-grid" id="mcq-options"></div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<div id="flashcard-screen" class="screen">
+  <div class="score-row"><span id="fc-label"></span><span id="fc-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="fc-progress"></div></div>
+  <div class="pill" id="fc-dir" style="margin-bottom:1rem"></div>
+  <div class="word-card" id="fc-word"></div>
+  <div class="fc-answer" id="fc-translation" style="display:none"></div>
+  <div id="fc-reveal-btn" style="text-align:center;margin-bottom:1rem">
+    <button class="btn btn-accent" style="width:100%;padding:12px;" onclick="fcReveal()">Reveal Translation</button>
+  </div>
+  <div id="fc-rate-btns" style="display:none;gap:10px;justify-content:center;margin-bottom:1.5rem">
+    <button class="btn" style="border-color:#f0a0a0;color:#a32d2d;flex:1;" onclick="fcRate(false)">Didn't Know It</button>
+    <button class="btn" style="border-color:#9dd4b4;color:#1a6b3a;flex:1;background:#e8f7ee;" onclick="fcRate(true)">Got It</button>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<div id="match-screen" class="screen">
+  <div class="score-row"><span id="match-label">Match the pairs</span><span id="match-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="match-progress"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem">
+    <div class="match-col" id="match-left"></div>
+    <div class="match-col" id="match-right"></div>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<div id="type-screen" class="screen">
+  <div class="score-row"><span id="type-label"></span><span id="type-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="type-progress"></div></div>
+  <div class="pill" id="type-dir" style="margin-bottom:1rem"></div>
+  
+  <div class="word-card" id="type-word"></div>
+  
+  <button class="audio-btn" id="dictation-btn" style="display:none;" onclick="playCurrentWord()">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+    </svg>
+  </button>
+  
+  <input class="type-input" id="type-input" placeholder="Type the translation…" autocomplete="off" spellcheck="false">
+  <div class="feedback" id="type-feedback"></div>
+  <div style="display:flex;gap:10px;margin-bottom:1.5rem">
+    <button class="btn btn-accent" onclick="typeCheck()" style="flex:1">Check Answer</button>
+    <button class="btn" onclick="typeSkip()" style="color:#6b6860">Skip</button>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<div id="result-screen" class="screen">
+  <div style="text-align:center;margin-bottom:1rem">
+    <div class="badge-pct" id="result-pct"></div>
+    <div style="font-size:20px;font-weight:600;margin-bottom:.25rem;color:#1a1a18;" id="result-title"></div>
+    <div style="font-size:14px;color:#6b6860" id="result-sub"></div>
+  </div>
+  <div id="result-wrong" style="margin:1.5rem 0; background: #fff; border: 1px solid #ddd8d0; border-radius: 8px; padding: 15px;"></div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-accent" onclick="retryMode()">Practice Again</button>
+    <button class="btn" onclick="show('select-screen')">Return to Menu</button>
+  </div>
+</div>
+
+<div id="test-creator-screen" class="screen">
+  <button class="back-link" onclick="show('mode-screen')">← Back to modes</button>
+  <h2>Test Creator</h2>
+  <p class="sub">Generate a printable test from your selected vocabulary range.</p>
+  <div class="range-box">
+    <div class="range-row">
+      <span class="range-label">Number of Questions:</span>
+      <input class="range-input" id="test-q-count" type="number" min="5" max="100" value="20" style="width:80px;">
+    </div>
+  </div>
+  <div style="display:flex; gap:10px; margin-bottom:1.5rem">
+    <button class="btn btn-accent" onclick="generateTest(false)" style="flex:1">Generate Blank Test</button>
+    <button class="btn" onclick="generateTest(true)" style="flex:1; border-color:#1a56b0; color:#1a56b0;">Generate Answer Key</button>
+  </div>
+  <div id="test-output" style="background:#fff; border:1px solid #c8c4be; padding:20px; border-radius:8px; display:none; max-height:400px; overflow-y:auto; font-size:14px; text-align:left;"></div>
+  <button class="btn btn-accent" id="print-test-btn" onclick="printTest()" style="display:none; width:100%; margin-top:15px; padding:12px;">Print Worksheet</button>
+</div>
+
+<div id="toast" class="toast">Badge Unlocked: <span id="toast-msg"></span></div>
+
+</div>
+
+<script src="db.js"></script>
+
+<script>
+// ── App State ──
+let activeFrom=35, activeTo=46, activeDeck=[], dir='en-de', lastMode='mcq', isWeakMode=false;
+let current=0, score=0, wrong=[];
+let matchSelected=null, matchPairs=[], matchDone=0;
+let timeLimit=60, timeInterval=null;
+
+// ── Gamification State ──
+let streak=0, lastPlayed="", badges={}, weakWords=[];
+
+// Emoji-free Badge Definitions
+const BADGE_DEFS = {
+  'first_blood': { icon:'1st', title:'First Step', desc:'Complete your first quiz.' },
+  'early_bird':  { icon:'AM', title:'Early Bird', desc:'Study before 8:00 AM.' },
+  'night_owl':   { icon:'PM', title:'Night Owl', desc:'Study after 10:00 PM.' },
+  'flawless':    { icon:'100', title:'Flawless', desc:'100% on a >10 word quiz.' },
+  'speed_demon': { icon:'60s', title:'Speed Demon', desc:'Score 15+ in Time Attack.' },
+  'dedicated':   { icon:'3d', title:'Dedicated', desc:'Reach a 3-day streak.' }
+};
+
+// ── Initialization & Storage ──
+function initApp(){
+  if('speechSynthesis' in window){
+    speechSynthesis.getVoices(); 
+    speechSynthesis.onvoiceschanged = () => { window.voicesReady = true; };
+  }
+
+  streak = parseInt(localStorage.getItem('vocab_streak') || '0');
+  lastPlayed = localStorage.getItem('vocab_last_played') || '';
+  badges = JSON.parse(localStorage.getItem('vocab_badges') || '{}');
+  weakWords = JSON.parse(localStorage.getItem('vocab_weak_words') || '[]');
+  
+  updateStreakUI();
+  renderBadges();
+  renderWeakAlert();
+  buildSelection();
+}
+
+function updateStreakData(){
+  const today = new Date().toDateString();
+  if(lastPlayed !== today){
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if(lastPlayed === yesterday.toDateString()){
+      streak++;
+    } else {
+      streak = 1; 
+    }
+    lastPlayed = today;
+    localStorage.setItem('vocab_streak', streak);
+    localStorage.setItem('vocab_last_played', lastPlayed);
+    updateStreakUI();
+    if(streak >= 3) awardBadge('dedicated');
+  }
+}
+function updateStreakUI(){ document.getElementById('streak-count').textContent = streak; }
+
+function awardBadge(id){
+  if(!badges[id]){
+    badges[id] = true;
+    localStorage.setItem('vocab_badges', JSON.stringify(badges));
+    renderBadges();
+    
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = BADGE_DEFS[id].title;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+}
+
+function renderBadges(){
+  const container = document.getElementById('badge-container');
+  container.innerHTML = '';
+  for(const [id, def] of Object.entries(BADGE_DEFS)){
+    const isUnlocked = badges[id] ? 'unlocked' : '';
+    container.innerHTML += `<div class="badge-card ${isUnlocked}">
+      <div class="badge-icon">${def.icon}</div>
+      <div class="badge-title">${def.title}</div>
+      <div class="badge-desc">${def.desc}</div>
+    </div>`;
+  }
+}
+
+// ── Spaced Repetition (Weak Words) ──
+function handleAnswerEvaluation(qText, aText, isCorrect){
+  const existingIdx = weakWords.findIndex(w => w.q === qText && w.a === aText);
+  
+  if(!isCorrect){
+    if(existingIdx >= 0) weakWords[existingIdx].streak = 0;
+    else weakWords.push({q: qText, a: aText, streak: 0});
+  } else if(existingIdx >= 0) {
+    weakWords[existingIdx].streak++;
+    if(weakWords[existingIdx].streak >= 2){
+      weakWords.splice(existingIdx, 1); 
+    }
+  }
+  localStorage.setItem('vocab_weak_words', JSON.stringify(weakWords));
+}
+
+function renderWeakAlert(){
+  const c = document.getElementById('weak-alert-container');
+  if(weakWords.length >= 1){
+    c.innerHTML = `<div class="weak-word-alert" onclick="startWeakMode()">
+      <span>Notice: You have ${weakWords.length} weak words to review.</span>
+      <strong>Practice →</strong>
+    </div>`;
+  } else {
+    c.innerHTML = '';
+  }
+}
+
+function startWeakMode(){
+  isWeakMode = true;
+  activeDeck = shuffle(weakWords.map(w => [w.q, w.a])); 
+  lastMode = 'mcq';
+  dir = 'en-de'; 
+  startMode('mcq'); 
+}
+
+// ── Utilities ──
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b;}
+function setProgress(id,n,t){document.getElementById(id).style.width=Math.round((n/t)*100)+'%';}
+function dirLabel(){return dir==='en-de'?'English → German':'German → English';}
+function q(i){return dir==='en-de'?activeDeck[i][0]:activeDeck[i][1];}
+function a(i){return dir==='en-de'?activeDeck[i][1]:activeDeck[i][0];}
+function norm(s){return s.toLowerCase().replace(/[^a-z0-9äöüß\s]/g,'').trim();}
+function quitMode(){ clearInterval(timeInterval); show('select-screen'); renderWeakAlert(); }
+
+function getWords(from,to){
+  let w=[];
+  if(typeof VOCAB_BY_PAGE === 'undefined') return w;
+  for(let p=from;p<=to;p++){if(VOCAB_BY_PAGE[p])w=w.concat(VOCAB_BY_PAGE[p]);}
+  return w;
+}
+function countWords(from,to){
+  let n=0;
+  if(typeof VOCAB_BY_PAGE === 'undefined') return 0;
+  for(let p=from;p<=to;p++){if(VOCAB_BY_PAGE[p])n+=VOCAB_BY_PAGE[p].length;}
+  return n;
+}
+
+// ── Selection screen ──
+function buildSelection(){
+  const list=document.getElementById('unit-list');
+  list.innerHTML='';
+  if(typeof UNITS === 'undefined') return;
+  UNITS.forEach((u,idx)=>{
+    const n=u.from?countWords(u.from,u.to):'—';
+    const card=document.createElement('div');
+    card.className='unit-card';
+    card.innerHTML=`<div><div class="unit-name">${u.name}</div><div class="unit-meta">${u.desc}${u.from?' &nbsp;·&nbsp; pp.'+u.from+'–'+u.to:''}</div></div><span class="unit-count">${n} words</span>`;
+    card.onclick=()=>selectUnit(idx);
+    list.appendChild(card);
+  });
+  buildBubbles();
+  updateCount();
+
+  const fi=document.getElementById('range-from');
+  const ti=document.getElementById('range-to');
+  fi.oninput=()=>{
+    activeFrom=Math.max(6,Math.min(184,parseInt(fi.value)||6));
+    if(activeFrom>activeTo){activeTo=activeFrom;ti.value=activeTo;}
+    fi.value=activeFrom;
+    deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+  };
+  ti.oninput=()=>{
+    activeTo=Math.max(6,Math.min(184,parseInt(ti.value)||6));
+    if(activeTo<activeFrom){activeFrom=activeTo;fi.value=activeFrom;}
+    ti.value=activeTo;
+    deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+  };
+
+  selectUnit(0);
+}
+
+function deselectUnits(){document.querySelectorAll('.unit-card').forEach(c=>c.classList.remove('selected'));}
+function selectCustom(){
+  const cards = document.querySelectorAll('.unit-card');
+  if(cards.length > 0) cards[cards.length-1].classList.add('selected');
+}
+
+function selectUnit(idx){
+  deselectUnits();
+  const cards = document.querySelectorAll('.unit-card');
+  if(cards[idx]) cards[idx].classList.add('selected');
+  const u=UNITS[idx];
+  if(u && u.from){
+    activeFrom=u.from; activeTo=u.to;
+    document.getElementById('range-from').value=activeFrom;
+    document.getElementById('range-to').value=activeTo;
+  }
+  buildBubbles(); updateCount();
+}
+
+function buildBubbles(){
+  const container=document.getElementById('page-bubbles');
+  container.innerHTML='';
+  if(typeof VOCAB_BY_PAGE === 'undefined') return;
+  const allPages=Object.keys(VOCAB_BY_PAGE).map(Number).sort((a,b)=>a-b);
+  allPages.forEach(p=>{
+    const bub=document.createElement('div');
+    const inRange=p>=activeFrom&&p<=activeTo;
+    const isEdge=p===activeFrom||p===activeTo;
+    bub.className='pb'+(isEdge?' range-start':inRange?' in-range':'');
+    bub.textContent=p;
+    bub.onclick=()=>{
+      if(!bub._drag){
+        activeFrom=p; if(p>activeTo)activeTo=p;
+        document.getElementById('range-from').value=activeFrom;
+        document.getElementById('range-to').value=activeTo;
+        deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+      }
+    };
+    bub.oncontextmenu=(e)=>{
+      e.preventDefault();
+      activeTo=p; if(p<activeFrom)activeFrom=p;
+      document.getElementById('range-from').value=activeFrom;
+      document.getElementById('range-to').value=activeTo;
+      deselectUnits(); selectCustom(); buildBubbles(); updateCount();
+    };
+    container.appendChild(bub);
+  });
+}
+
+function updateCount(){
+  const n=countWords(activeFrom,activeTo);
+  document.getElementById('range-count').textContent=n+' words';
+  document.getElementById('start-btn').disabled=n<4;
+}
+
+function goToModes(){
+  isWeakMode = false;
+  const words=getWords(activeFrom,activeTo);
+  if(words.length<4){alert('Not enough words in this range.');return;}
+  activeDeck=shuffle(words);
+  document.getElementById('mode-sub').textContent=activeDeck.length+' words · pages '+activeFrom+'–'+activeTo;
+  show('mode-screen');
+}
+
+// ── Modes Core ──
+function startMode(m){
+  clearInterval(timeInterval);
+  lastMode=m; current=0; score=0; wrong=[];
+  
+  if(!isWeakMode) {
+    const sel=document.getElementById('dir-select').value;
+    dir=sel==='random'?(Math.random()<.5?'en-de':'de-en'):sel;
+    activeDeck=shuffle(activeDeck);
+  }
+
+  if(m==='mcq' || m==='timeattack') renderMCQ(m==='timeattack');
+  else if(m==='flashcard') renderFC(); 
+  else if(m==='match') renderMatch();
+  else if(m==='type' || m==='dictation') renderType(m==='dictation');
+}
+
+function retryMode(){
+  if(isWeakMode) startWeakMode();
+  else startMode(lastMode);
+}
+
+// ── Voice System ──
+function playCurrentWord() {
+  const text = q(current);
+  const targetLang = dir === 'en-de' ? 'en' : 'de';
+  
+  if (!('speechSynthesis' in window)) return;
+  
+  const utterance = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+  
+  let bestVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith(targetLang));
+  if (!bestVoice) bestVoice = voices.find(v => v.name.includes('Premium') && v.lang.startsWith(targetLang));
+  if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith(targetLang));
+  
+  if (bestVoice) {
+    utterance.voice = bestVoice;
+    utterance.lang = bestVoice.lang;
+  } else {
+    utterance.lang = targetLang === 'en' ? 'en-GB' : 'de-DE';
+  }
+  
+  utterance.rate = 0.9;
+  speechSynthesis.speak(utterance);
+}
+
+// ── Flashcard ──
+function renderFC(){
+  show('flashcard-screen');
+  document.getElementById('fc-translation').style.display='none';
+  document.getElementById('fc-reveal-btn').style.display='block';
+  document.getElementById('fc-rate-btns').style.display='none';
+  document.getElementById('fc-dir').textContent=dirLabel();
+  document.getElementById('fc-word').textContent=q(current);
+  document.getElementById('fc-label').textContent='Card '+(current+1)+' of '+activeDeck.length;
+  document.getElementById('fc-score').textContent='Got it: '+score;
+  setProgress('fc-progress',current,activeDeck.length);
+}
+function fcReveal(){
+  document.getElementById('fc-translation').textContent=a(current);
+  document.getElementById('fc-translation').style.display='block';
+  document.getElementById('fc-reveal-btn').style.display='none';
+  document.getElementById('fc-rate-btns').style.display='flex';
+}
+function fcRate(knew){
+  handleAnswerEvaluation(q(current), a(current), knew);
+  if(knew) { score++; } 
+  else { wrong.push({q:q(current),a:a(current)}); }
+  
+  current++;
+  current>=activeDeck.length ? showResult(score,activeDeck.length) : renderFC();
+}
+
+// ── MCQ & Time Attack ──
+function renderMCQ(isTimeAttack = false){
+  show('mcq-screen');
+  document.getElementById('mcq-dir').textContent=dirLabel();
+  
+  if(isTimeAttack){
+    document.getElementById('ta-timer-container').style.display='block';
+    document.getElementById('mcq-prog-container').style.display='none';
+    document.getElementById('mcq-label').textContent='Speed Run!';
+    timeLimit = 60;
+    document.getElementById('ta-timer').textContent = timeLimit + 's';
+    clearInterval(timeInterval);
+    timeInterval = setInterval(()=>{
+      timeLimit--;
+      document.getElementById('ta-timer').textContent = timeLimit + 's';
+      if(timeLimit <= 0){
+        clearInterval(timeInterval);
+        showResult(score, current);
+      }
+    }, 1000);
+  } else {
+    document.getElementById('ta-timer-container').style.display='none';
+    document.getElementById('mcq-prog-container').style.display='block';
+    document.getElementById('mcq-label').textContent='Question '+(current+1)+' of '+activeDeck.length;
+    setProgress('mcq-progress',current,activeDeck.length);
+  }
+
+  document.getElementById('mcq-score').textContent='Score: '+score;
+  document.getElementById('mcq-word').textContent=q(current);
+  
+  const correct=a(current);
+  const distractors=shuffle(activeDeck.filter((_,i)=>i!==current).map(w=>dir==='en-de'?w[1]:w[0]).filter(v=>v!==correct)).slice(0,3);
+  const opts=shuffle([correct,...distractors]);
+  const grid=document.getElementById('mcq-options');
+  grid.innerHTML='';
+  opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt';b.textContent=opt;
+    b.onclick=()=>mcqPick(b,opt===correct,correct, isTimeAttack);
+    grid.appendChild(b);
+  });
+}
+
+function mcqPick(btn,isCorrect,correct, isTimeAttack){
+  document.querySelectorAll('.opt').forEach(b=>b.setAttribute('disabled','true'));
+  handleAnswerEvaluation(q(current), correct, isCorrect);
+
+  if(isCorrect){btn.classList.add('correct');score++;}
+  else{btn.classList.add('wrong');wrong.push({q:q(current),a:correct});document.querySelectorAll('.opt').forEach(b=>{if(b.textContent===correct)b.classList.add('reveal');});}
+  
+  setTimeout(()=>{
+    current++;
+    if(!isTimeAttack && current >= activeDeck.length){
+      showResult(score,activeDeck.length);
+    } else {
+      if(current >= activeDeck.length) current = 0; 
+      if(isTimeAttack && timeLimit > 0) renderMCQ(true);
+      else if(!isTimeAttack) renderMCQ(false);
+    }
+  }, isTimeAttack && isCorrect ? 300 : 900); 
+}
+
+// ── Match ──
+function renderMatch(){
+  show('match-screen');
+  matchSelected=null;matchPairs=[];matchDone=0;
+  const pool=shuffle(activeDeck).slice(0,6);
+  matchPairs=pool.map(w=>({en:w[0],de:w[1],id:w[0]}));
+  const left=shuffle(matchPairs),right=shuffle(matchPairs);
+  document.getElementById('match-score').textContent='0 / '+matchPairs.length+' matched';
+  setProgress('match-progress',0,matchPairs.length);
+  const lCol=document.getElementById('match-left');
+  const rCol=document.getElementById('match-right');
+  lCol.innerHTML='';rCol.innerHTML='';
+  left.forEach(p=>{
+    const d=document.createElement('div');d.className='match-item';
+    d.textContent=dir==='en-de'?p.en:p.de;
+    d.dataset.id=p.id;d.dataset.side='left';
+    d.onclick=()=>matchClick(d);lCol.appendChild(d);
+  });
+  right.forEach(p=>{
+    const d=document.createElement('div');d.className='match-item';
+    d.textContent=dir==='en-de'?p.de:p.en;
+    d.dataset.id=p.id;d.dataset.side='right';
+    d.onclick=()=>matchClick(d);rCol.appendChild(d);
+  });
+}
+function matchClick(el){
+  if(el.classList.contains('matched'))return;
+  if(!matchSelected){matchSelected=el;el.classList.add('selected');}
+  else{
+    if(matchSelected===el){el.classList.remove('selected');matchSelected=null;return;}
+    if(matchSelected.dataset.side===el.dataset.side){matchSelected.classList.remove('selected');matchSelected=el;el.classList.add('selected');return;}
+    const old=matchSelected;matchSelected=null;old.classList.remove('selected');
+    const pairAns = matchPairs.find(p=>p.id===old.dataset.id)?.[dir==='en-de'?'de':'en'] || '';
+
+    if(old.dataset.id===el.dataset.id){
+      [old,el].forEach(d=>{d.classList.remove('selected');d.classList.add('matched');});
+      handleAnswerEvaluation(old.textContent, pairAns, true);
+      matchDone++;
+      document.getElementById('match-score').textContent=matchDone+' / '+matchPairs.length+' matched';
+      setProgress('match-progress',matchDone,matchPairs.length);
+      if(matchDone>=matchPairs.length)setTimeout(()=>showResult(matchPairs.length,matchPairs.length),400);
+    } else {
+      handleAnswerEvaluation(old.textContent, pairAns, false);
+      wrong.push({q:old.textContent,a:pairAns});
+      [old,el].forEach(d=>d.classList.add('wrong-flash'));
+      setTimeout(()=>[old,el].forEach(d=>d.classList.remove('wrong-flash')),600);
+    }
+  }
+}
+
+// ── Type & Dictation ──
+function renderType(isDictation = false){
+  show('type-screen');
+  document.getElementById('type-dir').textContent=dirLabel();
+  document.getElementById('type-label').textContent='Question '+(current+1)+' of '+activeDeck.length;
+  document.getElementById('type-score').textContent='Score: '+score;
+  document.getElementById('type-feedback').textContent='';
+  document.getElementById('type-feedback').style.color='';
+  document.getElementById('type-input').value='';
+  setProgress('type-progress',current,activeDeck.length);
+  
+  if(isDictation){
+    document.getElementById('type-word').style.display = 'none';
+    document.getElementById('dictation-btn').style.display = 'flex';
+    playCurrentWord(); 
+  } else {
+    document.getElementById('type-word').style.display = 'flex';
+    document.getElementById('dictation-btn').style.display = 'none';
+    document.getElementById('type-word').textContent=q(current);
+  }
+
+  setTimeout(()=>document.getElementById('type-input').focus(),50);
+  document.getElementById('type-input').onkeydown=e=>{if(e.key==='Enter')typeCheck(isDictation);};
+}
+
+function typeCheck(isDictation){
+  const val=document.getElementById('type-input').value;
+  if(!val.trim())return;
+  const ans=a(current);
+  const parts=ans.split(/[,\/]/).map(s=>s.trim());
+  const ok=parts.some(p=>norm(val)===norm(p))||norm(val)===norm(ans);
+  const fb=document.getElementById('type-feedback');
+  
+  handleAnswerEvaluation(q(current), ans, ok);
+
+  if(ok){fb.textContent='Correct!';fb.style.color='#1a6b3a';score++;setTimeout(()=>{current++;current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);},650);}
+  else{fb.textContent='Answer: '+ans;fb.style.color='#a32d2d';wrong.push({q:q(current),a:ans});
+    if(isDictation) document.getElementById('type-word').style.display = 'flex'; 
+    setTimeout(()=>{
+      current++;
+      current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);
+    },1800);
+  }
+}
+function typeSkip(){
+  handleAnswerEvaluation(q(current), a(current), false);
+  wrong.push({q:q(current),a:a(current)});
+  current++;
+  const isDictation = lastMode === 'dictation';
+  current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);
+}
+
+// ── Results & Gamification ──
+function showResult(s,t){
+  show('result-screen');
+  clearInterval(timeInterval);
+  updateStreakData();
+  awardBadge('first_blood');
+  
+  const hour = new Date().getHours();
+  if(hour < 8) awardBadge('early_bird');
+  if(hour >= 22) awardBadge('night_owl');
+  
+  const pct=Math.round((s/t)*100);
+  if(pct === 100 && t >= 10 && lastMode !== 'timeattack') awardBadge('flawless');
+  if(lastMode === 'timeattack' && s >= 15) awardBadge('speed_demon');
+
+  document.getElementById('result-pct').textContent = (lastMode==='timeattack') ? s+' Pts' : pct+'%';
+  
+  const title = (lastMode==='timeattack') ? (s>=15?'Amazing Speed!':'Good effort!') : 
+                (pct===100?'Perfect!':pct>=80?'Great work!':pct>=60?'Good effort!':'Keep practising!');
+  
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-sub').textContent= (lastMode==='timeattack') ? 'in 60 seconds' : s+' out of '+t+' correct · '+dirLabel();
+  
+  const wd=document.getElementById('result-wrong');
+  if(wrong.length && lastMode !== 'timeattack'){
+    const uniq=[...new Map(wrong.map(w=>[w.q,w])).values()];
+    wd.style.display = 'block';
+    wd.innerHTML='<div style="font-size:14px;font-weight:600;color:#1a1a18;margin-bottom:12px;border-bottom:1px solid #ddd8d0;padding-bottom:8px;">Review these words:</div>'+
+      uniq.map(w=>'<div class="summary-row"><span style="flex:1;font-weight:500;">'+w.q+'</span><span style="flex:1;text-align:right;color:#6b6860">'+w.a+'</span></div>').join('');
+  }else{
+    wd.style.display = 'none';
+    wd.innerHTML='';
+  }
+}
+
+// ── Test Creator ──
+function showTestCreator() {
+  show('test-creator-screen');
+  document.getElementById('test-output').style.display = 'none';
+  document.getElementById('print-test-btn').style.display = 'none';
+  const maxQ = Math.min(activeDeck.length, 20);
+  document.getElementById('test-q-count').value = maxQ;
+  document.getElementById('test-q-count').max = activeDeck.length;
+}
+
+function generateTest(showAnswers) {
+  let numQs = parseInt(document.getElementById('test-q-count').value) || 20;
+  if (numQs > activeDeck.length) numQs = activeDeck.length;
+  const shuffled = shuffle(activeDeck).slice(0, numQs);
+  const sel = document.getElementById('dir-select').value;
+  const testDir = sel === 'random' ? (Math.random() < 0.5 ? 'en-de' : 'de-en') : sel;
+  
+  let html = `<h2 style="text-align:center; margin-bottom: 20px; color:#1a1a18; font-size:24px; font-family:sans-serif;">Vocabulary Worksheet</h2>`;
+  html += `<ol style="margin-left: 20px; line-height: 2.5; color:#1a1a18; font-size:16px;">`;
+  shuffled.forEach(w => {
+    const question = testDir === 'en-de' ? w[0] : w[1];
+    const answer = testDir === 'en-de' ? w[1] : w[0];
+    if (showAnswers) html += `<li><strong>${question}</strong> &mdash; <span style="color:#1a56b0;font-weight:bold;">${answer}</span></li>`;
+    else html += `<li><strong>${question}</strong> &mdash; _______________________________________</li>`;
+  });
+  html += `</ol>`;
+  
+  const out = document.getElementById('test-output');
+  out.innerHTML = html;
+  out.style.display = 'block';
+  document.getElementById('print-test-btn').style.display = 'block';
+}
+
+function printTest() {
+  const content = document.getElementById('test-output').innerHTML;
+  const printWindow = window.open('', '', 'height=800,width=800');
+  printWindow.document.write('<html><head><title>Vocabulary Test</title><style>body{font-family:system-ui,-apple-system,sans-serif;padding:40px;color:#000}li{margin-bottom:15px;font-size:16px}@media print{@page{margin:2cm}}</style></head><body>');
+  printWindow.document.write(content);
+  printWindow.document.write('</body></html>');
+  printWindow.document.close(); printWindow.focus();
+  setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+}
+
+// ── Boot ──
+initApp();
+</script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }</script>
+</body>
+</html>
