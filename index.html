@@ -121,6 +121,18 @@ h2 { font-size: 18px; font-weight: 600; color: #1a56b0; margin-bottom: .25rem; }
 .summary-row { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid #e8e4de; font-size: 13px; }
 .badge-pct { font-size: 44px; font-weight: 600; text-align: center; margin: .75rem 0; color: #1a56b0; }
 .timer-text { font-size: 24px; font-weight: 600; color: #d97706; text-align: center; margin-bottom: 10px; }
+
+/* ── Hangman Mode ── */
+.hm-word-display { text-align: center; font-size: 24px; font-family: monospace; letter-spacing: 4px; margin-bottom: 1.5rem; font-weight: 600; color: #1a1a18; min-height: 36px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.hm-char { border-bottom: 2px solid #1a1a18; min-width: 20px; display: inline-block; text-align: center; }
+.hm-char.space { border-bottom: none; min-width: 15px; }
+.hm-keyboard { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 1.5rem; }
+.hm-key { background: #fff; border: 1px solid #c8c4be; border-radius: 6px; padding: 10px; font-size: 16px; font-weight: 500; color: #1a1a18; cursor: pointer; min-width: 40px; transition: all 0.15s; font-family: inherit; }
+.hm-key:hover:not(:disabled) { background: #f0ede8; border-color: #888; }
+.hm-key:disabled { opacity: 0.4; cursor: default; }
+.hm-key.correct { background: #e8f7ee; color: #1a6b3a; border-color: #9dd4b4; opacity: 1; }
+.hm-key.wrong { background: #fdeaea; color: #a32d2d; border-color: #f0a0a0; opacity: 1; text-decoration: line-through; }
+.hm-canvas { display: flex; justify-content: center; margin-bottom: 1rem; }
 </style>
 </head>
 <body>
@@ -187,6 +199,10 @@ h2 { font-size: 18px; font-weight: 600; color: #1a56b0; margin-bottom: .25rem; }
     <div class="mode-card" onclick="startMode('dictation')">
       <div class="mode-title">Dictation</div>
       <div class="mode-desc">Listen to the word and type</div>
+    </div>
+    <div class="mode-card" onclick="startMode('hangman')">
+      <div class="mode-title">Hangman</div>
+      <div class="mode-desc">Guess the letters to save the figure</div>
     </div>
     <div class="mode-card" onclick="startMode('timeattack')" style="grid-column: span 2; border-color: #d97706; background:#fcf4e3;">
       <div class="mode-title" style="color:#d97706;">Time Attack</div>
@@ -264,6 +280,35 @@ h2 { font-size: 18px; font-weight: 600; color: #1a56b0; margin-bottom: .25rem; }
   <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
 </div>
 
+<div id="hangman-screen" class="screen">
+  <div class="score-row"><span id="hm-label"></span><span id="hm-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="hm-progress"></div></div>
+  <div class="pill" id="hm-dir" style="margin-bottom:1rem"></div>
+  
+  <div class="word-card" id="hm-question" style="font-size:16px; color:#6b6860; min-height:auto; padding:1rem; margin-bottom:1rem;"></div>
+  
+  <div class="hm-canvas">
+    <svg id="hm-svg" width="120" height="150" viewBox="0 0 120 150" fill="none" stroke="#1a1a18" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="10" y1="140" x2="110" y2="140" />
+      <line x1="30" y1="140" x2="30" y2="10" />
+      <line x1="30" y1="10" x2="80" y2="10" />
+      <line x1="80" y1="10" x2="80" y2="30" />
+      
+      <circle id="hm-part-1" cx="80" cy="45" r="15" style="display:none;" />
+      <line id="hm-part-2" x1="80" y1="60" x2="80" y2="100" style="display:none;" />
+      <line id="hm-part-3" x1="80" y1="70" x2="60" y2="90" style="display:none;" />
+      <line id="hm-part-4" x1="80" y1="70" x2="100" y2="90" style="display:none;" />
+      <line id="hm-part-5" x1="80" y1="100" x2="65" y2="130" style="display:none;" />
+      <line id="hm-part-6" x1="80" y1="100" x2="95" y2="130" style="display:none;" />
+    </svg>
+  </div>
+
+  <div class="hm-word-display" id="hm-word"></div>
+  <div class="hm-keyboard" id="hm-keyboard"></div>
+  
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
 <div id="result-screen" class="screen">
   <div style="text-align:center;margin-bottom:1rem">
     <div class="badge-pct" id="result-pct"></div>
@@ -307,6 +352,11 @@ let activeFrom=35, activeTo=46, activeDeck=[], dir='en-de', lastMode='mcq', isWe
 let current=0, score=0, wrong=[];
 let matchSelected=null, matchPairs=[], matchDone=0;
 let timeLimit=60, timeInterval=null;
+
+// ── Hangman State ──
+let hmMistakes = 0;
+let hmGuessed = new Set();
+let hmAnswer = "";
 
 // ── Gamification State ──
 let streak=0, lastPlayed="", badges={}, weakWords=[];
@@ -556,6 +606,7 @@ function startMode(m){
   else if(m==='flashcard') renderFC(); 
   else if(m==='match') renderMatch();
   else if(m==='type' || m==='dictation') renderType(m==='dictation');
+  else if(m==='hangman') renderHangman();
 }
 
 function retryMode(){
@@ -779,6 +830,126 @@ function typeSkip(){
   current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);
 }
 
+// ── Hangman ──
+function renderHangman() {
+  show('hangman-screen');
+  document.getElementById('hm-dir').textContent = dirLabel();
+  document.getElementById('hm-label').textContent = 'Question ' + (current + 1) + ' of ' + activeDeck.length;
+  document.getElementById('hm-score').textContent = 'Score: ' + score;
+  setProgress('hm-progress', current, activeDeck.length);
+  
+  document.getElementById('hm-question').textContent = q(current);
+  
+  // Clean up the answer (remove parentheses, take first synonym only)
+  let rawAnswer = a(current).replace(/\(.*?\)/g, '').split(/[,;/]/)[0].trim();
+  hmAnswer = rawAnswer.toUpperCase();
+  
+  hmMistakes = 0;
+  hmGuessed.clear();
+  
+  // Reset SVG parts
+  for(let i=1; i<=6; i++) { document.getElementById('hm-part-'+i).style.display = 'none'; }
+  
+  buildHmKeyboard();
+  updateHmWordDisplay();
+}
+
+function buildHmKeyboard() {
+  const kb = document.getElementById('hm-keyboard');
+  kb.innerHTML = '';
+  let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+  
+  // Add German characters if translating into German
+  if (dir === 'en-de') { letters.push('Ä', 'Ö', 'Ü', 'ß'); }
+  
+  letters.forEach(char => {
+    const btn = document.createElement('button');
+    btn.className = 'hm-key';
+    btn.textContent = char;
+    btn.onclick = () => hmGuess(char, btn);
+    kb.appendChild(btn);
+  });
+}
+
+function updateHmWordDisplay() {
+  const container = document.getElementById('hm-word');
+  container.innerHTML = '';
+  
+  let allLettersRevealed = true;
+  
+  for(let i = 0; i < hmAnswer.length; i++) {
+    let char = hmAnswer[i];
+    let isLetter = /[A-ZÄÖÜß]/.test(char);
+    
+    let span = document.createElement('span');
+    if (char === ' ') {
+      span.className = 'hm-char space';
+    } else if (!isLetter) {
+      // Auto-reveal punctuation (like hyphens)
+      span.className = 'hm-char space';
+      span.textContent = char;
+    } else {
+      span.className = 'hm-char';
+      if (hmGuessed.has(char)) {
+        span.textContent = char;
+      } else {
+        span.textContent = '';
+        allLettersRevealed = false;
+      }
+    }
+    container.appendChild(span);
+  }
+  
+  return allLettersRevealed;
+}
+
+function hmGuess(char, btnElement) {
+  if (hmGuessed.has(char) || hmMistakes >= 6) return;
+  hmGuessed.add(char);
+  
+  if (hmAnswer.includes(char)) {
+    btnElement.classList.add('correct');
+    const won = updateHmWordDisplay();
+    if (won) {
+      score++;
+      handleAnswerEvaluation(q(current), a(current), true);
+      endHmRound(true);
+    }
+  } else {
+    btnElement.classList.add('wrong');
+    hmMistakes++;
+    document.getElementById('hm-part-' + hmMistakes).style.display = 'block';
+    
+    if (hmMistakes >= 6) {
+      handleAnswerEvaluation(q(current), a(current), false);
+      wrong.push({q: q(current), a: a(current)});
+      
+      // Auto-reveal missing letters in red
+      hmGuessed = new Set(hmAnswer.split('')); 
+      updateHmWordDisplay(); 
+      document.querySelectorAll('.hm-char').forEach(el => {
+        if (el.textContent && !el.classList.contains('space')) el.style.color = '#a32d2d'; 
+      });
+      
+      endHmRound(false);
+    }
+  }
+}
+
+function endHmRound(won) {
+  // Disable all keyboard buttons
+  document.querySelectorAll('.hm-key').forEach(b => b.disabled = true);
+  
+  setTimeout(() => {
+    current++;
+    if (current >= activeDeck.length) {
+      showResult(score, activeDeck.length);
+    } else {
+      renderHangman();
+    }
+  }, won ? 1000 : 2000); 
+}
+
 // ── Results & Gamification ──
 function showResult(s,t){
   show('result-screen');
@@ -812,16 +983,6 @@ function showResult(s,t){
     wd.style.display = 'none';
     wd.innerHTML='';
   }
-}
-
-// ── Test Creator ──
-function showTestCreator() {
-  show('test-creator-screen');
-  document.getElementById('test-output').style.display = 'none';
-  document.getElementById('print-test-btn').style.display = 'none';
-  const maxQ = Math.min(activeDeck.length, 20);
-  document.getElementById('test-q-count').value = maxQ;
-  document.getElementById('test-q-count').max = activeDeck.length;
 }
 
 // ── Test Creator ──
@@ -947,6 +1108,7 @@ function printTest() {
   printWindow.focus();
   setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
 }
+
 // ── Boot ──
 initApp();
 </script>
