@@ -5,6 +5,1199 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Vocab Trainer – Eingangsklasse BG</title>
 <link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1a1a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Vocab BG">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet">
+<style>
+:root {
+  --bg: #f5f0e8;
+  --fg: #1a1a1a;
+  --border: #1a1a1a;
+  --card: #ffffff;
+  --yellow: #ffcc00;
+  --blue: #0055ff;
+  --red: #ff4422;
+  --green: #00aa44;
+  --muted: #e8e4dc;
+  --muted-light: #f0ede8;
+  --sh: 5px 5px 0px var(--border);
+  --sh-sm: 3px 3px 0px var(--border);
+  --sh-lg: 8px 8px 0px var(--border);
+}
+html.dark {
+  --bg: #121212; --fg: #f5f0e8; --border: #f5f0e8;
+  --card: #1e1e1e; --muted: #2e2e2e; --muted-light: #252525;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Space Grotesk',system-ui,sans-serif;background:var(--bg);color:var(--fg);min-height:100vh;transition:background .2s,color .2s}
+
+/* === Header === */
+.site-header{position:sticky;top:0;z-index:50;background:var(--bg);border-bottom:3px solid var(--border);height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 1.5rem;transition:background .2s}
+.logo{font-size:22px;font-weight:800;letter-spacing:-.05em;text-transform:uppercase;font-style:italic}
+.header-btns{display:flex;gap:8px;align-items:center}
+.icon-btn{width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:3px solid var(--border);background:var(--card);color:var(--fg);cursor:pointer;transition:all .1s;font-family:inherit;font-size:18px}
+.icon-btn:hover{transform:translate(-1px,-1px);box-shadow:3px 3px 0 var(--border)}
+.icon-btn:active{transform:translate(2px,2px);box-shadow:none}
+
+/* === Layout === */
+.wrap{width:100%;max-width:640px;margin:0 auto;padding:2rem 1.25rem}
+.screen{display:none}.screen.active{display:block}
+
+/* === Typography === */
+.page-title{font-size:clamp(30px,7vw,56px);font-weight:800;text-transform:uppercase;letter-spacing:-.04em;line-height:1;margin-bottom:.25rem}
+.page-sub{font-size:13px;font-weight:500;opacity:.55;margin-bottom:1.5rem}
+.sub{font-size:13px;opacity:.6;margin-bottom:1.25rem}
+.pill{display:inline-block;font-size:10px;font-weight:700;padding:3px 10px;border:2px solid var(--border);text-transform:uppercase;letter-spacing:.05em;background:var(--muted);color:var(--fg)}
+
+/* === Buttons === */
+.btn{cursor:pointer;padding:10px 20px;border:3px solid var(--border);background:var(--card);color:var(--fg);font-size:13px;font-weight:700;font-family:inherit;text-transform:uppercase;letter-spacing:.03em;transition:all .1s;box-shadow:var(--sh-sm)}
+.btn:hover:not(:disabled){transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.btn:active:not(:disabled){transform:translate(3px,3px);box-shadow:none}
+.btn:disabled{opacity:.35;cursor:default;pointer-events:none}
+.btn-primary{background:var(--blue);color:#fff;border-color:var(--border)}
+.btn-red{background:var(--red);color:#fff;border-color:var(--border)}
+.btn-lg{padding:16px 24px;font-size:18px;font-weight:800;width:100%;display:flex;align-items:center;justify-content:center;gap:10px;box-shadow:var(--sh)}
+.btn-sm{padding:7px 16px;font-size:11px;box-shadow:var(--sh-sm)}
+.back-link{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;color:var(--fg);cursor:pointer;margin-bottom:1.5rem;background:none;border:none;font-family:inherit;text-transform:uppercase;letter-spacing:.05em;padding:0;opacity:.55}
+.back-link:hover{opacity:1}
+
+/* === Top Bar === */
+.top-bar{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:1.75rem;padding-bottom:1.25rem;border-bottom:3px solid var(--border)}
+.streak-box{background:var(--yellow);color:#1a1a1a;border:3px solid var(--border);box-shadow:var(--sh-sm);padding:10px 14px;display:flex;flex-direction:column;align-items:center;min-width:72px;gap:2px}
+.streak-num{font-size:24px;font-weight:800;line-height:1}
+.streak-label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.65}
+.top-bar-right{display:flex;gap:8px;align-items:flex-start}
+
+/* === Weak Alert === */
+.weak-word-alert{background:#fff0ee;color:#cc2200;border:3px solid var(--border);box-shadow:var(--sh-sm);padding:12px 16px;font-size:12px;font-weight:700;margin-bottom:1.25rem;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-transform:uppercase;letter-spacing:.03em;transition:all .1s}
+html.dark .weak-word-alert{background:#2a1010;color:#ff7755}
+.weak-word-alert:hover{transform:translate(-1px,-1px);box-shadow:var(--sh)}
+.weak-word-alert:active{transform:translate(2px,2px);box-shadow:none}
+
+/* === Selection Header === */
+.selection-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem}
+.selection-title{display:inline-block;background:var(--fg);color:var(--bg);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;padding:3px 9px}
+.selection-actions{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;cursor:pointer;color:var(--fg);border:2px solid var(--border);padding:3px 10px;background:var(--card);transition:all .1s}
+.selection-actions:hover{background:var(--yellow);color:#1a1a1a;transform:translate(-1px,-1px);box-shadow:2px 2px 0 var(--border)}
+.selection-actions:active{transform:translate(1px,1px);box-shadow:none}
+
+/* === Unit List === */
+.unit-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;max-height:380px;overflow-y:auto;padding-right:4px}
+.unit-card{cursor:pointer;padding:13px 16px;border:3px solid var(--border);background:var(--card);display:flex;align-items:center;justify-content:space-between;transition:all .1s;box-shadow:var(--sh-sm)}
+.unit-card:hover{transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.unit-card:active{transform:translate(2px,2px);box-shadow:none}
+.unit-card.selected{background:var(--yellow);color:#1a1a1a}
+.unit-name{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.02em}
+.unit-meta{font-size:11px;opacity:.6;margin-top:2px}
+.unit-count{font-size:10px;font-weight:700;padding:3px 9px;border:2px solid var(--border);background:var(--muted);white-space:nowrap;text-transform:uppercase}
+.unit-card.selected .unit-count{background:rgba(0,0,0,.12)}
+
+/* === Progress Bar === */
+.progress-bar{height:10px;border:3px solid var(--border);background:var(--muted);overflow:hidden;margin-bottom:1.5rem}
+.progress-fill{height:100%;background:var(--yellow);transition:width .35s}
+.score-row{display:flex;justify-content:space-between;align-items:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;opacity:.65;margin-bottom:.75rem}
+
+/* === Word Card === */
+.word-card{background:var(--card);border:3px solid var(--border);box-shadow:var(--sh);padding:2rem 1.5rem;text-align:center;font-size:clamp(20px,5vw,30px);font-weight:800;color:var(--fg);margin-bottom:1.5rem;min-height:88px;display:flex;align-items:center;justify-content:center;line-height:1.2;letter-spacing:-.02em;text-transform:uppercase}
+
+/* === Mode Grid === */
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.mode-card{cursor:pointer;padding:16px;border:3px solid var(--border);background:var(--card);transition:all .1s;box-shadow:var(--sh-sm);display:flex;flex-direction:column;gap:8px}
+.mode-card:hover{transform:translate(-2px,-2px);box-shadow:var(--sh)}
+.mode-card:active{transform:translate(2px,2px);box-shadow:none}
+.mode-icon{width:42px;height:42px;border:3px solid var(--border);background:var(--muted);display:flex;align-items:center;justify-content:center;transition:background .15s;flex-shrink:0}
+.mode-card:hover .mode-icon{background:var(--yellow);color:#1a1a1a}
+.mode-title{font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:var(--fg)}
+.mode-desc{font-size:11px;font-weight:500;opacity:.6;color:var(--fg)}
+
+/* === MCQ Options === */
+.options-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem}
+.opt{cursor:pointer;padding:16px 14px;border:3px solid var(--border);background:var(--card);color:var(--fg);font-size:13px;font-weight:700;text-align:left;transition:all .1s;line-height:1.4;width:100%;font-family:inherit;text-transform:uppercase;box-shadow:var(--sh-sm)}
+.opt:hover:not([disabled]){transform:translate(-2px,-2px);box-shadow:var(--sh);background:var(--yellow);color:#1a1a1a}
+.opt.correct{background:#ccffdd;color:#004422;border-color:var(--border)}
+html.dark .opt.correct{background:#003311;color:#88ffaa}
+.opt.wrong{background:#ffdddd;color:#880000;border-color:var(--border)}
+html.dark .opt.wrong{background:#330000;color:#ff9977}
+.opt.reveal{background:#ccffdd;color:#004422;opacity:.5}
+html.dark .opt.reveal{background:#003311;color:#88ffaa;opacity:.5}
+.opt[disabled]{cursor:default;pointer-events:none}
+
+/* === Flashcard === */
+.fc-answer{text-align:center;font-size:clamp(18px,4vw,26px);font-weight:800;color:var(--fg);margin-bottom:1.5rem;padding:1.5rem;border:3px solid var(--border);box-shadow:var(--sh-sm);background:var(--muted-light);text-transform:uppercase;letter-spacing:-.02em}
+
+/* === Match === */
+.match-col{display:flex;flex-direction:column;gap:8px}
+.match-item{padding:12px 14px;border:3px solid var(--border);background:var(--card);color:var(--fg);font-size:12px;font-weight:700;cursor:pointer;transition:all .1s;min-height:46px;display:flex;align-items:center;line-height:1.3;text-transform:uppercase;box-shadow:var(--sh-sm)}
+.match-item:hover{transform:translate(-1px,-1px);box-shadow:var(--sh);background:var(--yellow);color:#1a1a1a}
+.match-item.selected{background:var(--blue);color:#fff}
+.match-item.matched{background:#ccffdd;color:#004422;pointer-events:none;opacity:.7}
+html.dark .match-item.matched{background:#003311;color:#88ffaa}
+.match-item.wrong-flash{background:#ffdddd;color:#880000}
+html.dark .match-item.wrong-flash{background:#330000;color:#ff9977}
+
+/* === Type & Dictation === */
+.type-input{width:100%;padding:14px 16px;font-size:18px;font-weight:700;border:3px solid var(--border);background:var(--bg);color:var(--fg);margin-bottom:10px;font-family:inherit;box-shadow:var(--sh-sm);transition:all .1s}
+.type-input:focus{outline:none;background:var(--yellow);color:#1a1a1a;box-shadow:var(--sh)}
+.feedback{font-size:13px;font-weight:700;min-height:22px;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.03em;text-align:center}
+.audio-btn{width:80px;height:80px;border:3px solid var(--border);background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;cursor:pointer;box-shadow:var(--sh);transition:all .1s}
+.audio-btn svg{width:36px;height:36px;fill:currentColor}
+.audio-btn:hover{transform:translate(-2px,-2px);box-shadow:var(--sh-lg)}
+.audio-btn:active{transform:translate(3px,3px);box-shadow:none}
+
+/* === Timer === */
+.timer-text{font-size:44px;font-weight:800;color:var(--red);text-align:center;margin-bottom:10px;letter-spacing:-.04em}
+
+/* === Results === */
+.badge-pct{font-size:clamp(56px,12vw,88px);font-weight:800;text-align:center;margin:.75rem 0;letter-spacing:-.05em;line-height:1}
+.summary-row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:2px solid var(--border);font-size:13px;font-weight:600}
+.result-wrong-box{background:var(--card);border:3px solid var(--border);box-shadow:var(--sh-sm);padding:16px;margin:1.5rem 0}
+
+/* === Badge Grid === */
+.badge-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1.5rem}
+.badge-card{background:var(--card);border:3px solid var(--border);box-shadow:var(--sh-sm);padding:16px;text-align:center;opacity:.3;filter:grayscale(1);transition:all .3s}
+.badge-card.unlocked{opacity:1;filter:none;background:var(--yellow);color:#1a1a1a;box-shadow:var(--sh)}
+.badge-icon{font-size:18px;font-weight:800;margin-bottom:8px;letter-spacing:.05em;text-transform:uppercase}
+.badge-title{font-size:12px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:2px}
+.badge-desc{font-size:11px;opacity:.65}
+
+/* === Toast === */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(120px);background:var(--fg);color:var(--bg);padding:14px 24px;border:3px solid var(--border);box-shadow:var(--sh);font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;transition:transform .4s cubic-bezier(.175,.885,.32,1.275);z-index:100;display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* === Dir Select === */
+.dir-select{width:100%;padding:10px 12px;border:3px solid var(--border);background:var(--bg);color:var(--fg);font-size:13px;font-family:inherit;font-weight:700;text-transform:uppercase;margin-bottom:1.5rem;cursor:pointer;box-shadow:var(--sh-sm)}
+.dir-select:focus{outline:none;background:var(--yellow);color:#1a1a1a}
+
+/* === Hangman === */
+.hm-word-display{text-align:center;font-size:22px;font-family:monospace;letter-spacing:4px;margin-bottom:1.5rem;font-weight:700;color:var(--fg);min-height:36px;display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.hm-char{border-bottom:3px solid var(--border);min-width:22px;display:inline-block;text-align:center}
+.hm-char.space{border-bottom:none;min-width:16px}
+.hm-keyboard{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:1.5rem}
+.hm-key{background:var(--card);border:3px solid var(--border);box-shadow:var(--sh-sm);padding:10px;font-size:15px;font-weight:700;color:var(--fg);cursor:pointer;min-width:42px;transition:all .1s;font-family:inherit;text-transform:uppercase}
+.hm-key:hover:not(:disabled){transform:translate(-1px,-1px);box-shadow:var(--sh);background:var(--yellow);color:#1a1a1a}
+.hm-key:active:not(:disabled){transform:translate(2px,2px);box-shadow:none}
+.hm-key:disabled{opacity:.35;cursor:default;pointer-events:none}
+.hm-key.correct{background:#ccffdd;color:#004422;pointer-events:none;opacity:1}
+html.dark .hm-key.correct{background:#003311;color:#88ffaa}
+.hm-key.wrong{background:#ffdddd;color:#880000;pointer-events:none;text-decoration:line-through;opacity:1}
+html.dark .hm-key.wrong{background:#330000;color:#ff9977}
+.hm-canvas{display:flex;justify-content:center;margin-bottom:1rem}
+
+/* === Misc === */
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--bg);border-left:3px solid var(--border)}
+::-webkit-scrollbar-thumb{background:var(--border)}
+</style>
+<script>
+if(localStorage.getItem('theme')==='dark'||(!'theme' in localStorage&&window.matchMedia('(prefers-color-scheme: dark)').matches)){
+  document.documentElement.classList.add('dark');
+}
+function toggleTheme(){
+  const isDark=document.documentElement.classList.toggle('dark');
+  localStorage.setItem('theme',isDark?'dark':'light');
+  document.getElementById('theme-icon').textContent=isDark?'light_mode':'dark_mode';
+}
+</script>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="logo">VOCAB.RAW</div>
+  <div class="header-btns">
+    <button class="icon-btn" onclick="toggleTheme()" title="Toggle dark mode">
+      <span class="material-symbols-outlined" id="theme-icon">dark_mode</span>
+    </button>
+  </div>
+</header>
+
+<main>
+<div class="wrap">
+
+<!-- ── Select Screen ── -->
+<div id="select-screen" class="screen active">
+  <div class="top-bar">
+    <div>
+      <div class="page-title">Vocab Trainer</div>
+      <div class="page-sub">Eingangsklasse BG</div>
+    </div>
+    <div class="top-bar-right">
+      <div class="streak-box">
+        <span class="material-symbols-outlined" style="font-size:20px">local_fire_department</span>
+        <div class="streak-num" id="streak-count">0</div>
+        <div class="streak-label">Streak</div>
+      </div>
+      <button class="icon-btn" onclick="show('badge-screen')" title="Achievements" style="width:44px;height:44px">
+        <span class="material-symbols-outlined">emoji_events</span>
+      </button>
+    </div>
+  </div>
+
+  <div id="weak-alert-container"></div>
+
+  <div class="selection-header">
+    <div class="selection-title">Select Sections to Study</div>
+    <div class="selection-actions" onclick="selectAllUnits()">Select All</div>
+  </div>
+
+  <div class="unit-list" id="unit-list"></div>
+
+  <button class="btn btn-red btn-lg" id="start-btn" onclick="goToModes()">Practice 0 words →</button>
+</div>
+
+<!-- ── Badge Screen ── -->
+<div id="badge-screen" class="screen">
+  <button class="back-link" onclick="show('select-screen')">← Back to start</button>
+  <div class="page-title" style="font-size:clamp(26px,6vw,44px)">Achievements</div>
+  <p class="sub">Unlock badges by hitting study milestones.</p>
+  <div class="badge-grid" id="badge-container"></div>
+</div>
+
+<!-- ── Mode Screen ── -->
+<div id="mode-screen" class="screen">
+  <button class="back-link" onclick="show('select-screen')">← Change selection</button>
+  <div class="page-title" style="font-size:clamp(26px,6vw,44px)">Select Mode</div>
+  <p class="sub" id="mode-sub"></p>
+
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('mcq')">
+      <div class="mode-icon"><span class="material-symbols-outlined">list_alt</span></div>
+      <div class="mode-title">Multiple Choice</div>
+      <div class="mode-desc">Pick the correct translation</div>
+    </div>
+    <div class="mode-card" onclick="startMode('flashcard')">
+      <div class="mode-icon"><span class="material-symbols-outlined">style</span></div>
+      <div class="mode-title">Flashcards</div>
+      <div class="mode-desc">Reveal translation, rate yourself</div>
+    </div>
+    <div class="mode-card" onclick="startMode('match')">
+      <div class="mode-icon"><span class="material-symbols-outlined">hub</span></div>
+      <div class="mode-title">Match Pairs</div>
+      <div class="mode-desc">Connect sets of 6 pairs</div>
+    </div>
+    <div class="mode-card" onclick="startMode('type')">
+      <div class="mode-icon"><span class="material-symbols-outlined">keyboard</span></div>
+      <div class="mode-title">Type It</div>
+      <div class="mode-desc">Type from memory</div>
+    </div>
+    <div class="mode-card" onclick="startMode('dictation')">
+      <div class="mode-icon"><span class="material-symbols-outlined">mic</span></div>
+      <div class="mode-title">Dictation</div>
+      <div class="mode-desc">Listen to the word and type</div>
+    </div>
+    <div class="mode-card" onclick="startMode('hangman')">
+      <div class="mode-icon"><span class="material-symbols-outlined">mood_bad</span></div>
+      <div class="mode-title">Hangman</div>
+      <div class="mode-desc">Guess the letters to save the figure</div>
+    </div>
+    <div class="mode-card" onclick="startMode('timeattack')" style="grid-column:span 2;background:var(--yellow);color:#1a1a1a;flex-direction:row;align-items:center;justify-content:space-between;position:relative;overflow:hidden;">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="mode-icon" style="background:var(--card)"><span class="material-symbols-outlined">timer</span></div>
+        <div>
+          <div class="mode-title" style="color:#1a1a1a;font-size:15px">Time Attack</div>
+          <div class="mode-desc" style="color:#1a1a1a">60 seconds. How many can you get?</div>
+        </div>
+      </div>
+      <div style="position:absolute;top:-6px;right:-6px;background:var(--red);color:#fff;border:3px solid var(--border);padding:3px 10px;font-size:9px;font-weight:800;text-transform:uppercase;transform:rotate(6deg)">Hardcore</div>
+    </div>
+    <div class="mode-card" onclick="showTestCreator()" style="grid-column:span 2;flex-direction:row;align-items:center;gap:12px">
+      <div class="mode-icon"><span class="material-symbols-outlined">print</span></div>
+      <div>
+        <div class="mode-title">Create a Worksheet</div>
+        <div class="mode-desc">Generate a printable test for class</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;opacity:.55;margin-bottom:6px">Translation Direction</div>
+  <select id="dir-select" class="dir-select">
+    <option value="random">Random Direction</option>
+    <option value="en-de">English → German</option>
+    <option value="de-en">German → English</option>
+  </select>
+</div>
+
+<!-- ── MCQ Screen ── -->
+<div id="mcq-screen" class="screen">
+  <div id="ta-timer-container" style="display:none"><div class="timer-text" id="ta-timer">60s</div></div>
+  <div class="score-row"><span id="mcq-label"></span><span id="mcq-score"></span></div>
+  <div class="progress-bar" id="mcq-prog-container"><div class="progress-fill" id="mcq-progress"></div></div>
+  <div class="pill" id="mcq-dir" style="margin-bottom:1rem"></div>
+  <div class="word-card" id="mcq-word"></div>
+  <div class="options-grid" id="mcq-options"></div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<!-- ── Flashcard Screen ── -->
+<div id="flashcard-screen" class="screen">
+  <div class="score-row"><span id="fc-label"></span><span id="fc-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="fc-progress"></div></div>
+  <div class="pill" id="fc-dir" style="margin-bottom:1rem"></div>
+  <div class="word-card" id="fc-word"></div>
+  <div class="fc-answer" id="fc-translation" style="display:none"></div>
+  <div id="fc-reveal-btn" style="text-align:center;margin-bottom:1rem">
+    <button class="btn btn-primary" style="width:100%;padding:12px" onclick="fcReveal()">Reveal Translation</button>
+  </div>
+  <div id="fc-rate-btns" style="display:none;gap:10px;justify-content:center;margin-bottom:1.5rem">
+    <button class="btn" style="color:var(--red);flex:1" onclick="fcRate(false)">Didn't Know It</button>
+    <button class="btn" style="background:#ccffdd;color:#004422;flex:1" onclick="fcRate(true)">Got It</button>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<!-- ── Match Screen ── -->
+<div id="match-screen" class="screen">
+  <div class="score-row"><span id="match-label">Match the pairs</span><span id="match-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="match-progress"></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.5rem">
+    <div class="match-col" id="match-left"></div>
+    <div class="match-col" id="match-right"></div>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<!-- ── Type Screen (also Dictation) ── -->
+<div id="type-screen" class="screen">
+  <div class="score-row"><span id="type-label"></span><span id="type-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="type-progress"></div></div>
+  <div class="pill" id="type-dir" style="margin-bottom:1rem"></div>
+  <div class="word-card" id="type-word"></div>
+  <button class="audio-btn" id="dictation-btn" style="display:none" onclick="playCurrentWord()">
+    <svg viewBox="0 0 24 24">
+      <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+    </svg>
+  </button>
+  <input class="type-input" id="type-input" placeholder="Type the translation…" autocomplete="off" spellcheck="false">
+  <div class="feedback" id="type-feedback"></div>
+  <div style="display:flex;gap:10px;margin-bottom:1.5rem">
+    <button class="btn btn-primary" onclick="typeCheck()" style="flex:1">Check Answer</button>
+    <button class="btn" onclick="typeSkip()" style="opacity:.6">Skip</button>
+  </div>
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<!-- ── Hangman Screen ── -->
+<div id="hangman-screen" class="screen">
+  <div class="score-row"><span id="hm-label"></span><span id="hm-score"></span></div>
+  <div class="progress-bar"><div class="progress-fill" id="hm-progress"></div></div>
+  <div class="pill" id="hm-dir" style="margin-bottom:1rem"></div>
+
+  <div class="word-card" id="hm-question" style="font-size:16px;opacity:.65;min-height:auto;padding:1rem;margin-bottom:1rem"></div>
+
+  <div class="hm-canvas">
+    <svg id="hm-svg" width="120" height="150" viewBox="0 0 120 150" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <line x1="10" y1="140" x2="110" y2="140" />
+      <line x1="30" y1="140" x2="30" y2="10" />
+      <line x1="30" y1="10" x2="80" y2="10" />
+      <line x1="80" y1="10" x2="80" y2="30" />
+      <circle id="hm-part-1" cx="80" cy="45" r="15" style="display:none" />
+      <line id="hm-part-2" x1="80" y1="60" x2="80" y2="100" style="display:none" />
+      <line id="hm-part-3" x1="80" y1="70" x2="60" y2="90" style="display:none" />
+      <line id="hm-part-4" x1="80" y1="70" x2="100" y2="90" style="display:none" />
+      <line id="hm-part-5" x1="80" y1="100" x2="65" y2="130" style="display:none" />
+      <line id="hm-part-6" x1="80" y1="100" x2="95" y2="130" style="display:none" />
+    </svg>
+  </div>
+
+  <div class="hm-word-display" id="hm-word"></div>
+  <div class="hm-keyboard" id="hm-keyboard"></div>
+
+  <button class="btn btn-sm" onclick="quitMode()" style="display:block;margin:0 auto">End Session</button>
+</div>
+
+<!-- ── Result Screen ── -->
+<div id="result-screen" class="screen">
+  <div style="text-align:center;margin-bottom:1rem;border:3px solid var(--border);box-shadow:var(--sh);background:var(--card);padding:2rem 1.5rem">
+    <div class="badge-pct" id="result-pct"></div>
+    <div style="font-size:20px;font-weight:800;text-transform:uppercase;letter-spacing:-.02em;margin-bottom:.25rem" id="result-title"></div>
+    <div style="font-size:12px;font-weight:600;opacity:.55;text-transform:uppercase;letter-spacing:.04em" id="result-sub"></div>
+  </div>
+  <div id="result-wrong" class="result-wrong-box" style="margin:1.5rem 0"></div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <button class="btn btn-primary" onclick="retryMode()">Practice Again</button>
+    <button class="btn" onclick="show('select-screen')">Return to Menu</button>
+  </div>
+</div>
+
+<!-- ── Test Creator Screen ── -->
+<div id="test-creator-screen" class="screen">
+  <button class="back-link" onclick="show('mode-screen')">← Back to modes</button>
+  <div class="page-title" style="font-size:clamp(26px,6vw,44px)">Test Creator</div>
+  <p class="sub">Generate a printable test from your selected vocabulary range.</p>
+  <div style="background:var(--card);border:3px solid var(--border);box-shadow:var(--sh-sm);padding:1.25rem;margin-bottom:1.25rem">
+    <div style="display:flex;align-items:center;gap:10px">
+      <span style="font-size:13px;font-weight:600">Number of Questions:</span>
+      <input id="test-q-count" type="number" min="5" max="100" value="20" style="width:80px;padding:8px 10px;border:3px solid var(--border);font-size:16px;font-family:inherit;font-weight:700;text-align:center;background:var(--bg);color:var(--fg)">
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:1.5rem">
+    <button class="btn btn-primary" onclick="generateTest(false)" style="flex:1">Generate Blank Test</button>
+    <button class="btn" onclick="generateTest(true)" style="flex:1">Generate Answer Key</button>
+  </div>
+  <div id="test-output" style="background:var(--card);border:3px solid var(--border);box-shadow:var(--sh-sm);padding:20px;display:none;max-height:400px;overflow-y:auto;font-size:14px;text-align:left;color:var(--fg)"></div>
+  <button class="btn btn-primary" id="print-test-btn" onclick="printTest()" style="display:none;width:100%;margin-top:15px;padding:14px;font-size:15px">Print Worksheet</button>
+</div>
+
+<div id="toast" class="toast">Badge Unlocked: <span id="toast-msg"></span></div>
+
+</div><!-- .wrap -->
+</main>
+
+<script src="db.js"></script>
+
+<script>
+// ── App State ──
+let activeUnitIds = [], activeDeck = [], dir = 'en-de', lastMode = 'mcq', isWeakMode = false;
+let current=0, score=0, wrong=[];
+let matchSelected=null, matchPairs=[], matchDone=0;
+let timeLimit=60, timeInterval=null;
+
+// ── Hangman State ──
+let hmMistakes = 0;
+let hmGuessed = new Set();
+let hmAnswer = "";
+
+// ── Gamification State ──
+let streak=0, lastPlayed="", badges={}, weakWords=[];
+
+const BADGE_DEFS = {
+  'first_blood': { icon:'1st', title:'First Step', desc:'Complete your first quiz.' },
+  'early_bird':  { icon:'AM', title:'Early Bird', desc:'Study before 8:00 AM.' },
+  'night_owl':   { icon:'PM', title:'Night Owl', desc:'Study after 10:00 PM.' },
+  'flawless':    { icon:'100', title:'Flawless', desc:'100% on a >10 word quiz.' },
+  'speed_demon': { icon:'60s', title:'Speed Demon', desc:'Score 15+ in Time Attack.' },
+  'dedicated':   { icon:'3d', title:'Dedicated', desc:'Reach a 3-day streak.' }
+};
+
+// ── Initialization & Storage ──
+function initApp(){
+  if('speechSynthesis' in window){
+    speechSynthesis.getVoices();
+    speechSynthesis.onvoiceschanged = () => { window.voicesReady = true; };
+  }
+
+  streak = parseInt(localStorage.getItem('vocab_streak') || '0');
+  lastPlayed = localStorage.getItem('vocab_last_played') || '';
+  badges = JSON.parse(localStorage.getItem('vocab_badges') || '{}');
+  weakWords = JSON.parse(localStorage.getItem('vocab_weak_words') || '[]');
+
+  // Sync theme icon
+  document.getElementById('theme-icon').textContent =
+    document.documentElement.classList.contains('dark') ? 'light_mode' : 'dark_mode';
+
+  updateStreakUI();
+  renderBadges();
+  renderWeakAlert();
+  buildSelection();
+}
+
+function updateStreakData(){
+  const today = new Date().toDateString();
+  if(lastPlayed !== today){
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if(lastPlayed === yesterday.toDateString()){
+      streak++;
+    } else {
+      streak = 1;
+    }
+    lastPlayed = today;
+    localStorage.setItem('vocab_streak', streak);
+    localStorage.setItem('vocab_last_played', lastPlayed);
+    updateStreakUI();
+    if(streak >= 3) awardBadge('dedicated');
+  }
+}
+function updateStreakUI(){ document.getElementById('streak-count').textContent = streak; }
+
+function awardBadge(id){
+  if(!badges[id]){
+    badges[id] = true;
+    localStorage.setItem('vocab_badges', JSON.stringify(badges));
+    renderBadges();
+
+    const toast = document.getElementById('toast');
+    document.getElementById('toast-msg').textContent = BADGE_DEFS[id].title;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3500);
+  }
+}
+
+function renderBadges(){
+  const container = document.getElementById('badge-container');
+  container.innerHTML = '';
+  for(const [id, def] of Object.entries(BADGE_DEFS)){
+    const isUnlocked = badges[id] ? 'unlocked' : '';
+    container.innerHTML += `<div class="badge-card ${isUnlocked}">
+      <div class="badge-icon">${def.icon}</div>
+      <div class="badge-title">${def.title}</div>
+      <div class="badge-desc">${def.desc}</div>
+    </div>`;
+  }
+}
+
+// ── Spaced Repetition (Weak Words) ──
+function handleAnswerEvaluation(qText, aText, isCorrect){
+  const existingIdx = weakWords.findIndex(w => w.q === qText && w.a === aText);
+
+  if(!isCorrect){
+    if(existingIdx >= 0) weakWords[existingIdx].streak = 0;
+    else weakWords.push({q: qText, a: aText, streak: 0});
+  } else if(existingIdx >= 0) {
+    weakWords[existingIdx].streak++;
+    if(weakWords[existingIdx].streak >= 2){
+      weakWords.splice(existingIdx, 1);
+    }
+  }
+  localStorage.setItem('vocab_weak_words', JSON.stringify(weakWords));
+}
+
+function renderWeakAlert(){
+  const c = document.getElementById('weak-alert-container');
+  if(weakWords.length >= 1){
+    c.innerHTML = `<div class="weak-word-alert" onclick="startWeakMode()">
+      <span>Notice: You have ${weakWords.length} weak words to review.</span>
+      <strong>Practice →</strong>
+    </div>`;
+  } else {
+    c.innerHTML = '';
+  }
+}
+
+function startWeakMode(){
+  isWeakMode = true;
+  activeDeck = shuffle(weakWords.map(w => [w.q, w.a]));
+  lastMode = 'mcq';
+  dir = 'en-de';
+  startMode('mcq');
+}
+
+// ── Utilities ──
+function show(id){document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById(id).classList.add('active');window.scrollTo(0,0);}
+function shuffle(a){let b=[...a];for(let i=b.length-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b;}
+function setProgress(id,n,t){document.getElementById(id).style.width=Math.round((n/t)*100)+'%';}
+function dirLabel(){return dir==='en-de'?'English → German':'German → English';}
+function q(i){return dir==='en-de'?activeDeck[i][0]:activeDeck[i][1];}
+function a(i){return dir==='en-de'?activeDeck[i][1]:activeDeck[i][0];}
+function norm(s){return s.toLowerCase().replace(/[^a-z0-9äöüß\s]/g,'').trim();}
+function quitMode(){ clearInterval(timeInterval); show('select-screen'); renderWeakAlert(); }
+
+// Changed to accept an array of selected IDs
+function getWords(ids){
+  let w=[];
+  if(typeof VOCAB_BY_PAGE === 'undefined') return w;
+  ids.forEach(id => {
+      if(VOCAB_BY_PAGE[id]) w = w.concat(VOCAB_BY_PAGE[id]);
+  });
+  return w;
+}
+function countWords(ids){
+  let n=0;
+  if(typeof VOCAB_BY_PAGE === 'undefined') return 0;
+  ids.forEach(id => {
+      if(VOCAB_BY_PAGE[id]) n += VOCAB_BY_PAGE[id].length;
+  });
+  return n;
+}
+
+// ── Selection screen ──
+function buildSelection() {
+  const list = document.getElementById('unit-list');
+  list.innerHTML = '';
+  activeUnitIds = []; // reset
+
+  if (typeof UNITS === 'undefined') return;
+
+  UNITS.forEach((u, idx) => {
+    // Falls Section in der Datenbank fehlt, auf 0 setzen
+    const n = VOCAB_BY_PAGE[u.id] ? VOCAB_BY_PAGE[u.id].length : 0;
+    const card = document.createElement('div');
+    card.className = 'unit-card';
+    card.dataset.id = u.id;
+
+    card.innerHTML = `<div><div class="unit-name">${u.name}</div><div class="unit-meta">${u.desc}</div></div><span class="unit-count">${n} words</span>`;
+
+    card.onclick = () => toggleUnit(u.id, card);
+    list.appendChild(card);
+  });
+
+  // Select first section by default
+  if(UNITS.length > 0) {
+      const firstCard = list.firstChild;
+      toggleUnit(UNITS[0].id, firstCard);
+  }
+}
+
+function toggleUnit(id, cardElement) {
+    const index = activeUnitIds.indexOf(id);
+    if (index > -1) {
+        activeUnitIds.splice(index, 1);
+        cardElement.classList.remove('selected');
+    } else {
+        activeUnitIds.push(id);
+        cardElement.classList.add('selected');
+    }
+    updateStartButton();
+}
+
+function selectAllUnits() {
+    const cards = document.querySelectorAll('.unit-card');
+    const isAllSelected = activeUnitIds.length === UNITS.length;
+
+    activeUnitIds = [];
+    cards.forEach(card => {
+        const id = card.dataset.id;
+        if (isAllSelected) {
+            // Deselect all
+            card.classList.remove('selected');
+        } else {
+            // Select all
+            activeUnitIds.push(id);
+            card.classList.add('selected');
+        }
+    });
+    updateStartButton();
+}
+
+function updateStartButton() {
+  const n = countWords(activeUnitIds);
+  const btn = document.getElementById('start-btn');
+  btn.textContent = `Practice ${n} words →`;
+  btn.disabled = n < 4;
+}
+
+function goToModes(){
+  isWeakMode = false;
+  const words = getWords(activeUnitIds);
+  if(words.length < 4){ alert('Please select more sections. At least 4 words are required.'); return; }
+
+  activeDeck = shuffle(words);
+  document.getElementById('mode-sub').textContent = `${activeDeck.length} words · ${activeUnitIds.length} sections selected`;
+  show('mode-screen');
+}
+
+// ── Modes Core ──
+function startMode(m){
+  clearInterval(timeInterval);
+  lastMode=m; current=0; score=0; wrong=[];
+
+  if(!isWeakMode) {
+    const sel=document.getElementById('dir-select').value;
+    dir=sel==='random'?(Math.random()<.5?'en-de':'de-en'):sel;
+    activeDeck=shuffle(activeDeck);
+  }
+
+  if(m==='mcq' || m==='timeattack') renderMCQ(m==='timeattack');
+  else if(m==='flashcard') renderFC();
+  else if(m==='match') renderMatch();
+  else if(m==='type' || m==='dictation') renderType(m==='dictation');
+  else if(m==='hangman') renderHangman();
+}
+
+function retryMode(){
+  if(isWeakMode) startWeakMode();
+  else startMode(lastMode);
+}
+
+// ── Voice System ──
+function playCurrentWord() {
+  const text = q(current);
+  const targetLang = dir === 'en-de' ? 'en' : 'de';
+
+  if (!('speechSynthesis' in window)) return;
+
+  const utterance = new SpeechSynthesisUtterance(text);
+  const voices = speechSynthesis.getVoices();
+
+  let bestVoice = voices.find(v => v.name.includes('Google') && v.lang.startsWith(targetLang));
+  if (!bestVoice) bestVoice = voices.find(v => v.name.includes('Premium') && v.lang.startsWith(targetLang));
+  if (!bestVoice) bestVoice = voices.find(v => v.lang.startsWith(targetLang));
+
+  if (bestVoice) {
+    utterance.voice = bestVoice;
+    utterance.lang = bestVoice.lang;
+  } else {
+    utterance.lang = targetLang === 'en' ? 'en-GB' : 'de-DE';
+  }
+
+  utterance.rate = 0.9;
+  speechSynthesis.speak(utterance);
+}
+
+// ── Flashcard ──
+function renderFC(){
+  show('flashcard-screen');
+  document.getElementById('fc-translation').style.display='none';
+  document.getElementById('fc-reveal-btn').style.display='block';
+  document.getElementById('fc-rate-btns').style.display='none';
+  document.getElementById('fc-dir').textContent=dirLabel();
+  document.getElementById('fc-word').textContent=q(current);
+  document.getElementById('fc-label').textContent='Card '+(current+1)+' of '+activeDeck.length;
+  document.getElementById('fc-score').textContent='Got it: '+score;
+  setProgress('fc-progress',current,activeDeck.length);
+}
+function fcReveal(){
+  document.getElementById('fc-translation').textContent=a(current);
+  document.getElementById('fc-translation').style.display='block';
+  document.getElementById('fc-reveal-btn').style.display='none';
+  document.getElementById('fc-rate-btns').style.display='flex';
+}
+function fcRate(knew){
+  handleAnswerEvaluation(q(current), a(current), knew);
+  if(knew) { score++; }
+  else { wrong.push({q:q(current),a:a(current)}); }
+
+  current++;
+  current>=activeDeck.length ? showResult(score,activeDeck.length) : renderFC();
+}
+
+// ── MCQ & Time Attack ──
+function renderMCQ(isTimeAttack = false){
+  show('mcq-screen');
+  document.getElementById('mcq-dir').textContent=dirLabel();
+
+  if(isTimeAttack){
+    document.getElementById('ta-timer-container').style.display='block';
+    document.getElementById('mcq-prog-container').style.display='none';
+    document.getElementById('mcq-label').textContent='Speed Run!';
+    timeLimit = 60;
+    document.getElementById('ta-timer').textContent = timeLimit + 's';
+    clearInterval(timeInterval);
+    timeInterval = setInterval(()=>{
+      timeLimit--;
+      document.getElementById('ta-timer').textContent = timeLimit + 's';
+      if(timeLimit <= 0){
+        clearInterval(timeInterval);
+        showResult(score, current);
+      }
+    }, 1000);
+  } else {
+    document.getElementById('ta-timer-container').style.display='none';
+    document.getElementById('mcq-prog-container').style.display='block';
+    document.getElementById('mcq-label').textContent='Question '+(current+1)+' of '+activeDeck.length;
+    setProgress('mcq-progress',current,activeDeck.length);
+  }
+
+  document.getElementById('mcq-score').textContent='Score: '+score;
+  document.getElementById('mcq-word').textContent=q(current);
+
+  const correct=a(current);
+  const distractors=shuffle(activeDeck.filter((_,i)=>i!==current).map(w=>dir==='en-de'?w[1]:w[0]).filter(v=>v!==correct)).slice(0,3);
+  const opts=shuffle([correct,...distractors]);
+  const grid=document.getElementById('mcq-options');
+  grid.innerHTML='';
+  opts.forEach(opt=>{
+    const b=document.createElement('button');
+    b.className='opt';b.textContent=opt;
+    b.onclick=()=>mcqPick(b,opt===correct,correct, isTimeAttack);
+    grid.appendChild(b);
+  });
+}
+
+function mcqPick(btn,isCorrect,correct, isTimeAttack){
+  document.querySelectorAll('.opt').forEach(b=>b.setAttribute('disabled','true'));
+  handleAnswerEvaluation(q(current), correct, isCorrect);
+
+  if(isCorrect){btn.classList.add('correct');score++;}
+  else{btn.classList.add('wrong');wrong.push({q:q(current),a:correct});document.querySelectorAll('.opt').forEach(b=>{if(b.textContent===correct)b.classList.add('reveal');});}
+
+  setTimeout(()=>{
+    current++;
+    if(!isTimeAttack && current >= activeDeck.length){
+      showResult(score,activeDeck.length);
+    } else {
+      if(current >= activeDeck.length) current = 0;
+      if(isTimeAttack && timeLimit > 0) renderMCQ(true);
+      else if(!isTimeAttack) renderMCQ(false);
+    }
+  }, isTimeAttack && isCorrect ? 300 : 900);
+}
+
+// ── Match ──
+function renderMatch(){
+  show('match-screen');
+  matchSelected=null;matchPairs=[];matchDone=0;
+  const pool=shuffle(activeDeck).slice(0,6);
+  matchPairs=pool.map(w=>({en:w[0],de:w[1],id:w[0]}));
+  const left=shuffle(matchPairs),right=shuffle(matchPairs);
+  document.getElementById('match-score').textContent='0 / '+matchPairs.length+' matched';
+  setProgress('match-progress',0,matchPairs.length);
+  const lCol=document.getElementById('match-left');
+  const rCol=document.getElementById('match-right');
+  lCol.innerHTML='';rCol.innerHTML='';
+  left.forEach(p=>{
+    const d=document.createElement('div');d.className='match-item';
+    d.textContent=dir==='en-de'?p.en:p.de;
+    d.dataset.id=p.id;d.dataset.side='left';
+    d.onclick=()=>matchClick(d);lCol.appendChild(d);
+  });
+  right.forEach(p=>{
+    const d=document.createElement('div');d.className='match-item';
+    d.textContent=dir==='en-de'?p.de:p.en;
+    d.dataset.id=p.id;d.dataset.side='right';
+    d.onclick=()=>matchClick(d);rCol.appendChild(d);
+  });
+}
+function matchClick(el){
+  if(el.classList.contains('matched'))return;
+  if(!matchSelected){matchSelected=el;el.classList.add('selected');}
+  else{
+    if(matchSelected===el){el.classList.remove('selected');matchSelected=null;return;}
+    if(matchSelected.dataset.side===el.dataset.side){matchSelected.classList.remove('selected');matchSelected=el;el.classList.add('selected');return;}
+    const old=matchSelected;matchSelected=null;old.classList.remove('selected');
+    const pairAns = matchPairs.find(p=>p.id===old.dataset.id)?.[dir==='en-de'?'de':'en'] || '';
+
+    if(old.dataset.id===el.dataset.id){
+      [old,el].forEach(d=>{d.classList.remove('selected');d.classList.add('matched');});
+      handleAnswerEvaluation(old.textContent, pairAns, true);
+      matchDone++;
+      document.getElementById('match-score').textContent=matchDone+' / '+matchPairs.length+' matched';
+      setProgress('match-progress',matchDone,matchPairs.length);
+      if(matchDone>=matchPairs.length)setTimeout(()=>showResult(matchPairs.length,matchPairs.length),400);
+    } else {
+      handleAnswerEvaluation(old.textContent, pairAns, false);
+      wrong.push({q:old.textContent,a:pairAns});
+      [old,el].forEach(d=>d.classList.add('wrong-flash'));
+      setTimeout(()=>[old,el].forEach(d=>d.classList.remove('wrong-flash')),600);
+    }
+  }
+}
+
+// ── Type & Dictation ──
+function renderType(isDictation = false){
+  show('type-screen');
+  document.getElementById('type-dir').textContent=dirLabel();
+  document.getElementById('type-label').textContent='Question '+(current+1)+' of '+activeDeck.length;
+  document.getElementById('type-score').textContent='Score: '+score;
+  document.getElementById('type-feedback').textContent='';
+  document.getElementById('type-feedback').style.color='';
+  document.getElementById('type-input').value='';
+  setProgress('type-progress',current,activeDeck.length);
+
+  if(isDictation){
+    document.getElementById('type-word').style.display = 'none';
+    document.getElementById('dictation-btn').style.display = 'flex';
+    playCurrentWord();
+  } else {
+    document.getElementById('type-word').style.display = 'flex';
+    document.getElementById('dictation-btn').style.display = 'none';
+    document.getElementById('type-word').textContent=q(current);
+  }
+
+  setTimeout(()=>document.getElementById('type-input').focus(),50);
+  document.getElementById('type-input').onkeydown=e=>{if(e.key==='Enter')typeCheck(isDictation);};
+}
+
+function typeCheck(isDictation){
+  const val=document.getElementById('type-input').value;
+  if(!val.trim())return;
+  const ans=a(current);
+  const parts=ans.split(/[,\/]/).map(s=>s.trim());
+  const ok=parts.some(p=>norm(val)===norm(p))||norm(val)===norm(ans);
+  const fb=document.getElementById('type-feedback');
+
+  handleAnswerEvaluation(q(current), ans, ok);
+
+  if(ok){fb.textContent='Correct!';fb.style.color='#1a6b3a';score++;setTimeout(()=>{current++;current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);},650);}
+  else{fb.textContent='Answer: '+ans;fb.style.color='#a32d2d';wrong.push({q:q(current),a:ans});
+    if(isDictation) document.getElementById('type-word').style.display = 'flex';
+    setTimeout(()=>{
+      current++;
+      current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);
+    },1800);
+  }
+}
+function typeSkip(){
+  handleAnswerEvaluation(q(current), a(current), false);
+  wrong.push({q:q(current),a:a(current)});
+  current++;
+  const isDictation = lastMode === 'dictation';
+  current>=activeDeck.length?showResult(score,activeDeck.length):renderType(isDictation);
+}
+
+// ── Hangman ──
+function renderHangman() {
+  show('hangman-screen');
+  document.getElementById('hm-dir').textContent = dirLabel();
+  document.getElementById('hm-label').textContent = 'Question ' + (current + 1) + ' of ' + activeDeck.length;
+  document.getElementById('hm-score').textContent = 'Score: ' + score;
+  setProgress('hm-progress', current, activeDeck.length);
+
+  document.getElementById('hm-question').textContent = q(current);
+
+  let rawAnswer = a(current).replace(/\(.*?\)/g, '').split(/[,;/]/)[0].trim();
+  hmAnswer = rawAnswer.toUpperCase();
+
+  hmMistakes = 0;
+  hmGuessed.clear();
+
+  for(let i=1; i<=6; i++) { document.getElementById('hm-part-'+i).style.display = 'none'; }
+
+  buildHmKeyboard();
+  updateHmWordDisplay();
+}
+
+function buildHmKeyboard() {
+  const kb = document.getElementById('hm-keyboard');
+  kb.innerHTML = '';
+  let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split('');
+
+  if (dir === 'en-de') { letters.push('Ä', 'Ö', 'Ü', 'ß'); }
+
+  letters.forEach(char => {
+    const btn = document.createElement('button');
+    btn.className = 'hm-key';
+    btn.textContent = char;
+    btn.onclick = () => hmGuess(char, btn);
+    kb.appendChild(btn);
+  });
+}
+
+function updateHmWordDisplay() {
+  const container = document.getElementById('hm-word');
+  container.innerHTML = '';
+
+  let allLettersRevealed = true;
+
+  for(let i = 0; i < hmAnswer.length; i++) {
+    let char = hmAnswer[i];
+    let isLetter = /[A-ZÄÖÜß]/.test(char);
+
+    let span = document.createElement('span');
+    if (char === ' ') {
+      span.className = 'hm-char space';
+    } else if (!isLetter) {
+      span.className = 'hm-char space';
+      span.textContent = char;
+    } else {
+      span.className = 'hm-char';
+      if (hmGuessed.has(char)) {
+        span.textContent = char;
+      } else {
+        span.textContent = '';
+        allLettersRevealed = false;
+      }
+    }
+    container.appendChild(span);
+  }
+
+  return allLettersRevealed;
+}
+
+function hmGuess(char, btnElement) {
+  if (hmGuessed.has(char) || hmMistakes >= 6) return;
+  hmGuessed.add(char);
+
+  if (hmAnswer.includes(char)) {
+    btnElement.classList.add('correct');
+    const won = updateHmWordDisplay();
+    if (won) {
+      score++;
+      handleAnswerEvaluation(q(current), a(current), true);
+      endHmRound(true);
+    }
+  } else {
+    btnElement.classList.add('wrong');
+    hmMistakes++;
+    document.getElementById('hm-part-' + hmMistakes).style.display = 'block';
+
+    if (hmMistakes >= 6) {
+      handleAnswerEvaluation(q(current), a(current), false);
+      wrong.push({q: q(current), a: a(current)});
+
+      hmGuessed = new Set(hmAnswer.split(''));
+      updateHmWordDisplay();
+      document.querySelectorAll('.hm-char').forEach(el => {
+        if (el.textContent && !el.classList.contains('space')) el.style.color = '#a32d2d';
+      });
+
+      endHmRound(false);
+    }
+  }
+}
+
+function endHmRound(won) {
+  document.querySelectorAll('.hm-key').forEach(b => b.disabled = true);
+  setTimeout(() => {
+    current++;
+    if (current >= activeDeck.length) {
+      showResult(score, activeDeck.length);
+    } else {
+      renderHangman();
+    }
+  }, won ? 1000 : 2000);
+}
+
+// ── Results & Gamification ──
+function showResult(s,t){
+  show('result-screen');
+  clearInterval(timeInterval);
+  updateStreakData();
+  awardBadge('first_blood');
+
+  const hour = new Date().getHours();
+  if(hour < 8) awardBadge('early_bird');
+  if(hour >= 22) awardBadge('night_owl');
+
+  const pct=Math.round((s/t)*100);
+  if(pct === 100 && t >= 10 && lastMode !== 'timeattack') awardBadge('flawless');
+  if(lastMode === 'timeattack' && s >= 15) awardBadge('speed_demon');
+
+  document.getElementById('result-pct').textContent = (lastMode==='timeattack') ? s+' Pts' : pct+'%';
+
+  const title = (lastMode==='timeattack') ? (s>=15?'Amazing Speed!':'Good effort!') :
+                (pct===100?'Perfect!':pct>=80?'Great work!':pct>=60?'Good effort!':'Keep practising!');
+
+  document.getElementById('result-title').textContent=title;
+  document.getElementById('result-sub').textContent= (lastMode==='timeattack') ? 'in 60 seconds' : s+' out of '+t+' correct · '+dirLabel();
+
+  const wd=document.getElementById('result-wrong');
+  if(wrong.length && lastMode !== 'timeattack'){
+    const uniq=[...new Map(wrong.map(w=>[w.q,w])).values()];
+    wd.style.display = 'block';
+    wd.innerHTML='<div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;opacity:.55;margin-bottom:12px;padding-bottom:8px;border-bottom:2px solid var(--border)">Review these words:</div>'+
+      uniq.map(w=>'<div class="summary-row"><span style="flex:1;font-weight:600;">'+w.q+'</span><span style="flex:1;text-align:right;opacity:.6">'+w.a+'</span></div>').join('');
+  }else{
+    wd.style.display = 'none';
+    wd.innerHTML='';
+  }
+}
+
+// ── Test Creator ──
+function showTestCreator() {
+  show('test-creator-screen');
+  document.getElementById('test-output').style.display = 'none';
+  document.getElementById('print-test-btn').style.display = 'none';
+  const maxQ = Math.min(activeDeck.length, 20);
+  document.getElementById('test-q-count').value = maxQ;
+  document.getElementById('test-q-count').max = activeDeck.length;
+}
+
+function generateTest(showAnswers) {
+  let numQs = parseInt(document.getElementById('test-q-count').value) || 20;
+  if (numQs > activeDeck.length) numQs = activeDeck.length;
+
+  const shuffled = shuffle(activeDeck).slice(0, numQs);
+  const sel = document.getElementById('dir-select').value;
+
+  let html = `
+    <div class="test-header" style="display:flex; justify-content:space-between; margin-bottom:30px; font-size:15px; color:#000;">
+      <div class="header-left">
+        <div>English/Eingangsklasse BG</div>
+        <div style="font-weight:bold; font-size:18px; margin-top:10px;">Vocabulary Test</div>
+      </div>
+      <div class="header-right" style="text-align:right;">
+        <div style="margin-bottom:10px;">name: <span style="display:inline-block; width:200px; border-bottom:1px solid #000;"></span></div>
+        <div>Total: <span style="display:inline-block; width:40px; border-bottom:1px solid #000;"></span> / ${numQs} &nbsp;&nbsp;&nbsp; Grade: <span style="display:inline-block; width:50px; border-bottom:1px solid #000;"></span></div>
+      </div>
+    </div>
+  `;
+
+  let part1 = [], part2 = [];
+  if (sel === 'en-de') {
+    part1 = shuffled;
+  } else if (sel === 'de-en') {
+    part2 = shuffled;
+  } else {
+    const half = Math.ceil(numQs / 2);
+    part1 = shuffled.slice(0, half);
+    part2 = shuffled.slice(half);
+  }
+
+  const renderList = (words, fromEnToDe) => {
+    let listHtml = `<ul style="list-style-type:none; padding:0; margin:0 0 30px 0;">`;
+    words.forEach(w => {
+      const question = fromEnToDe ? w[0] : w[1];
+      const answer = fromEnToDe ? w[1] : w[0];
+
+      if (showAnswers) {
+        listHtml += `
+          <li style="display:flex; align-items:flex-end; margin-bottom:16px; font-size:15px; color:#000;">
+            <span style="width:45%;">• ${question}</span>
+            <span style="flex:1; border-bottom:1px solid #000; color:#1a56b0; font-weight:bold; padding-bottom:2px;">${answer}</span>
+          </li>`;
+      } else {
+        listHtml += `
+          <li style="display:flex; align-items:flex-end; margin-bottom:16px; font-size:15px; color:#000;">
+            <span style="width:45%;">• ${question}</span>
+            <span style="flex:1; border-bottom:1px solid #000; padding-bottom:2px;"></span>
+          </li>`;
+      }
+    });
+    listHtml += `</ul>`;
+    return listHtml;
+  };
+
+  if (part1.length > 0) {
+    html += `
+      <div style="font-weight:bold; margin-bottom:15px; font-size:16px; color:#000;">
+        1. Translate these words into German. (${part1.length})
+      </div>
+      ${renderList(part1, true)}
+    `;
+  }
+
+  if (part2.length > 0) {
+    let sectionNum = part1.length > 0 ? "2." : "1.";
+    html += `
+      <div style="font-weight:bold; margin-bottom:15px; font-size:16px; color:#000;">
+        ${sectionNum} Translate these words into English. (${part2.length})
+      </div>
+      ${renderList(part2, false)}
+    `;
+  }
+
+  const out = document.getElementById('test-output');
+  out.innerHTML = html;
+  out.style.display = 'block';
+  document.getElementById('print-test-btn').style.display = 'block';
+}
+
+function printTest() {
+  const content = document.getElementById('test-output').innerHTML;
+  const printWindow = window.open('', '', 'height=800,width=800');
+
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>Vocabulary Test</title>
+        <style>
+          body { font-family: system-ui, -apple-system, sans-serif; padding: 20px; color: #000; background: #fff; }
+          li { page-break-inside: avoid; }
+          @media print {
+            @page { margin: 2cm; size: A4 portrait; }
+            body { padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+          }
+        </style>
+      </head>
+      <body>
+        ${content}
+      </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => { printWindow.print(); printWindow.close(); }, 250);
+}
+
+// ── Boot ──
+initApp();
+</script>
+<script>if ('serviceWorker' in navigator) { navigator.serviceWorker.register('sw.js'); }</script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocab Trainer – Eingangsklasse BG</title>
+<link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#1a56b0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
