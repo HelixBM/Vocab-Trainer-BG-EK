@@ -296,7 +296,7 @@ const VOCAB_BY_PAGE = {
     ["abolition (no pl)", "Abschaffung"],
     ["separation", "Trennung"],
     ["to enforce sth", "etw durchsetzen; etw Geltung verschaffen"],
-    ["to allocate", "zuteilen; zuteilen"],
+    ["to allocate", "zuteilen"],
     ["to secure", "sichern"],
     ["to achieve", "erreichen; leisten"],
   ],
