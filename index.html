@@ -868,6 +868,10 @@ function showResult(s, t){
 }
 
 // ── Test Creator ──
+
+// 1. Add a variable to store the current test so we don't shuffle it again
+let currentTestState = null;
+
 function showTestCreator(){
   show('test-creator-screen');
   document.getElementById('test-output').style.display = 'none';
@@ -875,25 +879,48 @@ function showTestCreator(){
   const maxQ = Math.min(activeDeck.length, 20);
   document.getElementById('test-q-count').value = maxQ;
   document.getElementById('test-q-count').max = activeDeck.length;
+  
+  // Reset the saved test when opening the creator screen
+  currentTestState = null; 
 }
 
 function generateTest(showAnswers){
-  let numQs = parseInt(document.getElementById('test-q-count').value) || 20;
-  if(numQs > activeDeck.length) numQs = activeDeck.length;
-  const shuffled = shuffle(activeDeck).slice(0, numQs);
-  const sel = document.getElementById('dir-select').value;
-  const testDir = sel === 'random' ? (Math.random()<.5?'en-de':'de-en') : sel;
+  // 2. Only generate new questions if we aren't asking for the answer key 
+  // OR if a test hasn't been generated yet.
+  if (!showAnswers || !currentTestState) {
+    let numQs = parseInt(document.getElementById('test-q-count').value) || 20;
+    if(numQs > activeDeck.length) numQs = activeDeck.length;
+    
+    const shuffled = shuffle(activeDeck).slice(0, numQs);
+    const sel = document.getElementById('dir-select').value;
+    const testDir = sel === 'random' ? (Math.random() < 0.5 ? 'en-de' : 'de-en') : sel;
+    
+    // Save the newly generated questions and direction
+    currentTestState = {
+      questions: shuffled,
+      direction: testDir
+    };
+  }
+
+  // 3. Use the saved questions and direction to build the HTML
+  const { questions, direction } = currentTestState;
+
   let html = `<h2 style="text-align:center;margin-bottom:20px;color:var(--fg)">Vocabulary Test</h2><ol style="margin-left:20px;line-height:2.5;color:var(--fg)">`;
-  shuffled.forEach(w => {
-    const question = testDir === 'en-de' ? w[0] : w[1];
-    const answer   = testDir === 'en-de' ? w[1] : w[0];
+  
+  questions.forEach(w => {
+    const question = direction === 'en-de' ? w[0] : w[1];
+    const answer   = direction === 'en-de' ? w[1] : w[0];
+    
     html += showAnswers
       ? `<li><strong>${question}</strong> — <span style="color:var(--green)">${answer}</span></li>`
       : `<li><strong>${question}</strong> — _______________________________________</li>`;
   });
+  
   html += '</ol>';
+  
   const out = document.getElementById('test-output');
-  out.innerHTML = html; out.style.display = 'block';
+  out.innerHTML = html; 
+  out.style.display = 'block';
   document.getElementById('print-test-btn').style.display = 'block';
 }
 
